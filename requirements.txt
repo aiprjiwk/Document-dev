@@ -1,0 +1,11 @@
+streamlit
+PyMuPDF
+pypdf
+pandas
+openpyxl
+Pillow
+zxing-cpp
+pyzbar
+winocr
+surya-ocr
+streamlit-option-menu

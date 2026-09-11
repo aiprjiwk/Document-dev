@@ -1,0 +1,874 @@
+{
+  "version": "1.0",
+  "description": "Tag mapping between Word Test Point descriptions and Excel Column C Function Names for IQ Installation",
+  "protocols": {
+    "Cartoner": {
+      "section_heading": "3 Test Protocol (Cartoner)",
+      "table_index": 2,
+      "tags": [
+        {
+          "id": "cart_01",
+          "category": "Product feeding",
+          "test_point_text": "Carton feeding system is installed",
+          "excel_keywords": [
+            "Carton feeding",
+            "Carton magazine",
+            "Carton infeed",
+            "Carton transfer"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_02",
+          "category": "Product feeding",
+          "test_point_text": "Leaflet feeding system is installed",
+          "excel_keywords": [
+            "Leaflet feeder",
+            "Leaflet feeding",
+            "Leaflet infeed",
+            "Leaflet folder"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_03",
+          "category": "Product feeding",
+          "test_point_text": "Flap transfer is installed",
+          "excel_keywords": [
+            "Flap transfer",
+            "Flap opening"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_04",
+          "category": "Product feeding",
+          "test_point_text": "Inserting wheel transfer is installed",
+          "excel_keywords": [
+            "Inserting wheel transfer",
+            "Insertion wheel"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_05",
+          "category": "Product feeding",
+          "test_point_text": "Robot transfer is installed",
+          "excel_keywords": [
+            "Robot transfer",
+            "Robot feeding",
+            "Robot infeed"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_06",
+          "category": "Product feeding",
+          "test_point_text": "Booklet feeding system is installed",
+          "excel_keywords": [
+            "Booklet feeding",
+            "Booklet feeder"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_07",
+          "category": "Product feeding",
+          "test_point_text": "Syringe feeding system is installed",
+          "excel_keywords": [
+            "Syringe feeding",
+            "Syringe feeder"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_08",
+          "category": "Product feeding",
+          "test_point_text": "Product infeed transfer is installed",
+          "excel_keywords": [
+            "Product infeed transfer",
+            "Product infeed",
+            "Product conveyor"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_09",
+          "category": "Product handling",
+          "test_point_text": "Product insertion is installed",
+          "excel_keywords": [
+            "Product insertion",
+            "Insertion system"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_10",
+          "category": "Product handling",
+          "test_point_text": "Embossing is installed",
+          "excel_keywords": [
+            "Embossing",
+            "Embossing station",
+            "Color embossing"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_11",
+          "category": "Product handling",
+          "test_point_text": "Inkjet printing is installed",
+          "excel_keywords": [
+            "Inkjet printing",
+            "Inkjet",
+            "Continuous inkjet"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_12",
+          "category": "Product handling",
+          "test_point_text": "Laser coding is installed",
+          "excel_keywords": [
+            "Laser coding",
+            "Laser marking",
+            "Laser printer"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_13",
+          "category": "Product handling",
+          "test_point_text": "Tuck-in closure is installed",
+          "excel_keywords": [
+            "Tuck-in closure",
+            "Tuck-in closing"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_14",
+          "category": "Product handling",
+          "test_point_text": "Hot-melt closure is installed",
+          "excel_keywords": [
+            "Hot-melt closure",
+            "Hot melt",
+            "Glue closure"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_15",
+          "category": "Product handling",
+          "test_point_text": "Tamper evident closure is installed",
+          "excel_keywords": [
+            "Tamper evident closure",
+            "Tamper evident",
+            "TE label"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_16",
+          "category": "Monitoring",
+          "test_point_text": "Sensor carton presence is installed",
+          "excel_keywords": [
+            "Sensor carton presence",
+            "Carton presence"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_17",
+          "category": "Monitoring",
+          "test_point_text": "Sensor leaflet presence is installed",
+          "excel_keywords": [
+            "Sensor leaflet presence",
+            "Leaflet presence"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_18",
+          "category": "Monitoring",
+          "test_point_text": "Sensor product presence is installed",
+          "excel_keywords": [
+            "Sensor product presence",
+            "Product presence",
+            "Monitoring, Product presence"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_19",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring carton code is installed",
+          "excel_keywords": [
+            "Camera monitoring carton code",
+            "Carton code camera",
+            "Code reader carton"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_20",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring leaflet code is installed",
+          "excel_keywords": [
+            "Camera monitoring leaflet code",
+            "Leaflet code camera",
+            "Code reader leaflet"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_21",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring print / label is installed",
+          "excel_keywords": [
+            "Camera monitoring print",
+            "Print monitoring",
+            "Label monitoring camera"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_22",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring product / booklet is installed",
+          "excel_keywords": [
+            "Camera monitoring product",
+            "Booklet camera",
+            "Monitoring product"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_23",
+          "category": "Product discharge / ejection",
+          "test_point_text": "Good carton discharge is installed",
+          "excel_keywords": [
+            "Good carton discharge",
+            "Discharge conveyor",
+            "Good product discharge"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "cart_24",
+          "category": "Product discharge / ejection",
+          "test_point_text": "Bad carton ejection is installed",
+          "excel_keywords": [
+            "Bad carton ejection",
+            "Rejection station",
+            "Faulty product ejection"
+          ],
+          "is_mandatory": false
+        }
+      ]
+    },
+    "Tube Filler": {
+      "section_heading": "4 Test Protocol (Tube Filler)",
+      "table_index": 3,
+      "tags": [
+        {
+          "id": "tf_01",
+          "category": "Product feeding",
+          "test_point_text": "Box magazine is installed",
+          "excel_keywords": [
+            "Box magazine",
+            "Tube magazine",
+            "Empty tube box"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_02",
+          "category": "Product feeding",
+          "test_point_text": "Robot for empty tubes is installed",
+          "excel_keywords": [
+            "Robot for empty tubes",
+            "Tube loading robot"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_03",
+          "category": "Product feeding",
+          "test_point_text": "Tube feeder (TZ) is installed",
+          "excel_keywords": [
+            "Tube feeder",
+            "TZT Tube infeed",
+            "TZM Tube infeed",
+            "TZF Tube infeed",
+            "Tube conveyor"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_04",
+          "category": "Product feeding",
+          "test_point_text": "Tube infeed system is installed",
+          "excel_keywords": [
+            "Tube infeed",
+            "Tube infeed system",
+            "Tube infeed (support TZF)"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_05",
+          "category": "Product feeding",
+          "test_point_text": "Product infeed system is installed",
+          "excel_keywords": [
+            "Product infeed",
+            "Product pump",
+            "Hopper",
+            "Agitator",
+            "Hopper heater"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_06",
+          "category": "Product handling",
+          "test_point_text": "Tube alignment station is installed",
+          "excel_keywords": [
+            "Centering cone",
+            "Tube orientation",
+            "Tube alignment",
+            "Tube print registration"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_07",
+          "category": "Product handling",
+          "test_point_text": "Tube blow out station is installed",
+          "excel_keywords": [
+            "Tube blow and extraction",
+            "Dedusting",
+            "Tube blow out"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_08",
+          "category": "Product handling",
+          "test_point_text": "Gassing station is installed",
+          "excel_keywords": [
+            "Dedusting with gassing (gassing)",
+            "Gas purging at tube orientation (option)",
+            "Gas purging before the HF station (Optional)",
+            "Gassing station"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_09",
+          "category": "Product handling",
+          "test_point_text": "Filling station is installed",
+          "excel_keywords": [
+            "Filling system",
+            "Dosing",
+            "Filling station",
+            "Drip dosing"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_10",
+          "category": "Product handling",
+          "test_point_text": "Tube folding stations are installed",
+          "excel_keywords": [
+            "Folding station (optional)",
+            "Tube folding stations",
+            "Folding station"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_11",
+          "category": "Product handling",
+          "test_point_text": "Hot air station is installed",
+          "excel_keywords": [
+            "Hot-air station (drive servo)",
+            "Hot-air station (drive with cam)",
+            "Hot air station",
+            "Hot-air station"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_12",
+          "category": "Product handling",
+          "test_point_text": "Press station is installed",
+          "excel_keywords": [
+            "Pressing jaws",
+            "Pressure cylinder",
+            "Press station"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_13",
+          "category": "Product handling",
+          "test_point_text": "Cutting station is installed",
+          "excel_keywords": [
+            "Cutting station",
+            "Trimming station",
+            "Tube cutting"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_14",
+          "category": "Product handling",
+          "test_point_text": "Laser labeling station is installed",
+          "excel_keywords": [
+            "Laser labeling",
+            "Laser coding",
+            "Laser station"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_15",
+          "category": "Product handling",
+          "test_point_text": "Print labeling station is installed",
+          "excel_keywords": [
+            "Print labeling",
+            "Printer station",
+            "Coding station"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_16",
+          "category": "Monitoring",
+          "test_point_text": "Sensor tube presence is installed",
+          "excel_keywords": [
+            "Tube presence at filling pipe",
+            "Sensor tube presence",
+            "Tube presence"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_17",
+          "category": "Monitoring",
+          "test_point_text": "Sensor print mark detection is installed",
+          "excel_keywords": [
+            "Sensor print mark detection",
+            "Print mark sensor",
+            "Print registration"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_18",
+          "category": "Monitoring",
+          "test_point_text": "Code reader tube code is installed",
+          "excel_keywords": [
+            "Centering cone with dedusting (code reader)",
+            "Code reader tube code",
+            "Tube code scanner"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_19",
+          "category": "Monitoring",
+          "test_point_text": "Sensor tube cap presence is installed",
+          "excel_keywords": [
+            "Sensor tube cap presence",
+            "Cap presence sensor",
+            "Cap check"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_20",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring labeling is installed",
+          "excel_keywords": [
+            "Camera monitoring labeling",
+            "Label inspection camera"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_21",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring tube roundness is installed",
+          "excel_keywords": [
+            "Monitoring, tube roundness",
+            "Tube roundness camera",
+            "Roundness inspection"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_22",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring tube fold is installed",
+          "excel_keywords": [
+            "Camera monitoring tube fold",
+            "Fold inspection camera"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_23",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring particle is installed",
+          "excel_keywords": [
+            "Camera monitoring particle",
+            "Particle inspection camera"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_24",
+          "category": "Product discharge / ejection",
+          "test_point_text": "Empty box discharge is installed",
+          "excel_keywords": [
+            "Empty box discharge",
+            "Box discharge"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_25",
+          "category": "Product discharge / ejection",
+          "test_point_text": "Bulkware discharge is installed",
+          "excel_keywords": [
+            "Bulkware discharge",
+            "Bulk discharge"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_26",
+          "category": "Product discharge / ejection",
+          "test_point_text": "IPC discharge is installed",
+          "excel_keywords": [
+            "IPC discharge",
+            "Sampling discharge",
+            "Test sample ejection"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_27",
+          "category": "Product discharge / ejection",
+          "test_point_text": "Good tube discharge is installed",
+          "excel_keywords": [
+            "Good tube discharge",
+            "Discharge chute",
+            "Monitoring, tube jam on discharge chute"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "tf_28",
+          "category": "Product discharge / ejection",
+          "test_point_text": "Bad tube ejection is installed",
+          "excel_keywords": [
+            "Bad tube ejection",
+            "Tube rejection",
+            "Discharge verification"
+          ],
+          "is_mandatory": false
+        }
+      ]
+    },
+    "Tube Filler FP 10": {
+      "section_heading": "5 Test Protocol (Tube Filler IWK FP 10)",
+      "table_index": 4,
+      "tags": [
+        {
+          "id": "fp10_01",
+          "category": "Product feeding",
+          "test_point_text": "Box magazine is installed",
+          "excel_keywords": [
+            "Hold"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_02",
+          "category": "Product feeding",
+          "test_point_text": "Robot for empty tubes is installed",
+          "excel_keywords": [
+            "Hold"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_03",
+          "category": "Product feeding",
+          "test_point_text": "Tube feeder (TZ) is installed",
+          "excel_keywords": [
+            "Hold"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_04",
+          "category": "Product feeding",
+          "test_point_text": "Tube infeed system is installed",
+          "excel_keywords": [
+            "Tube infeed",
+            "Tube infeed (support TZF)"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_05",
+          "category": "Product feeding",
+          "test_point_text": "Product infeed system is installed",
+          "excel_keywords": [
+            "Product pump (optional)",
+            "Product infeed with flange connection",
+            "Hopper",
+            "Agitator",
+            "Hopper heater",
+            "Pressure hopper",
+            "Pressure cylinder (option)"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_06",
+          "category": "Product handling",
+          "test_point_text": "Tube alignment station is installed",
+          "excel_keywords": [
+            "Centering cone with dedusting",
+            "Centering cone with dedusting (code reader)",
+            "Centering cone (optional)",
+            "Centering cone with drip dosing"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_07",
+          "category": "Product handling",
+          "test_point_text": "Tube blow out station is installed",
+          "excel_keywords": [
+            "Tube blow and extraction (optional)",
+            "Centering cone with dedusting"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_08",
+          "category": "Product handling",
+          "test_point_text": "Gassing station is installed",
+          "excel_keywords": [
+            "Dedusting with gassing (gassing)",
+            "Gas purging at tube orientation (option)",
+            "Gas purging before the HF station (Optional)",
+            "Gassing station"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_09",
+          "category": "Product handling",
+          "test_point_text": "Filling station is installed",
+          "excel_keywords": [
+            "Filling system",
+            "Centering cone with drip dosing (drip dosing)",
+            "5.25.11\tDrip dosing before filling (option)",
+            "Dosing system",
+            "Drip dosing after filling (Gr. 2911396A00)",
+            "Rotary valve",
+            "Rotary valve heating (option1)",
+            "Rotary valve heating (option2)",
+            "Shut-off (Product infeed)"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_10",
+          "category": "Product handling",
+          "test_point_text": "Tube folding stations are installed",
+          "excel_keywords": [
+            "Folding station (optional)",
+            "Tube folding stations",
+            "Folding station"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_11",
+          "category": "Product handling",
+          "test_point_text": "Hot air station is installed",
+          "excel_keywords": [
+            "Hot-air station (drive servo)",
+            "Hot-air station (drive with cam)",
+            "Hot air station",
+            "Hot-air station"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_12",
+          "category": "Product handling",
+          "test_point_text": "Press station is installed",
+          "excel_keywords": [
+            "Pressing jaws",
+            "Press station",
+            "Pressure cylinder",
+            "Press"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_13",
+          "category": "Product handling",
+          "test_point_text": "Cutting station is installed",
+          "excel_keywords": [
+            "Cutting station",
+            "Trimming station"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_14",
+          "category": "Product handling",
+          "test_point_text": "Laser labeling station is installed",
+          "excel_keywords": [
+            "Laser labeling station",
+            "Laser labeling",
+            "Laser coding"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_15",
+          "category": "Product handling",
+          "test_point_text": "Print labeling station is installed",
+          "excel_keywords": [
+            "Print labeling station",
+            "Print labeling"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_16",
+          "category": "Monitoring",
+          "test_point_text": "Sensor tube presence is installed",
+          "excel_keywords": [],
+          "is_mandatory": true
+        },
+        {
+          "id": "fp10_17",
+          "category": "Monitoring",
+          "test_point_text": "Sensor print mark detection is installed",
+          "excel_keywords": [],
+          "is_mandatory": true
+        },
+        {
+          "id": "fp10_18",
+          "category": "Monitoring",
+          "test_point_text": "Code reader tube code is installed",
+          "excel_keywords": [],
+          "is_mandatory": true
+        },
+        {
+          "id": "fp10_19",
+          "category": "Monitoring",
+          "test_point_text": "Sensor tube cap presence is installed",
+          "excel_keywords": [],
+          "is_mandatory": true
+        },
+        {
+          "id": "fp10_20",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring labeling is installed",
+          "excel_keywords": [],
+          "is_mandatory": true
+        },
+        {
+          "id": "fp10_21",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring tube roundness is installed",
+          "excel_keywords": [],
+          "is_mandatory": true
+        },
+        {
+          "id": "fp10_22",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring tube fold is installed",
+          "excel_keywords": [],
+          "is_mandatory": true
+        },
+        {
+          "id": "fp10_23",
+          "category": "Monitoring",
+          "test_point_text": "Camera monitoring particle is installed",
+          "excel_keywords": [],
+          "is_mandatory": true
+        },
+        {
+          "id": "fp10_24",
+          "category": "Product discharge / ejection",
+          "test_point_text": "Empty box discharge is installed",
+          "excel_keywords": [
+            "Hold"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_25",
+          "category": "Product discharge / ejection",
+          "test_point_text": "Bulkware discharge is installed",
+          "excel_keywords": [
+            "Hold"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_26",
+          "category": "Product discharge / ejection",
+          "test_point_text": "IPC discharge is installed",
+          "excel_keywords": [
+            "Hold"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_27",
+          "category": "Product discharge / ejection",
+          "test_point_text": "Good tube discharge is installed",
+          "excel_keywords": [
+            "Monitoring",
+            "Discharge verification (optional)",
+            "Monitoring",
+            "tube jam on discharge chute (option)",
+            "Good tube discharge",
+            "Tube ejector",
+            "Tube flipper",
+            "Deflection unit (optional)"
+          ],
+          "is_mandatory": false
+        },
+        {
+          "id": "fp10_28",
+          "category": "Product discharge / ejection",
+          "test_point_text": "Bad tube ejection is installed",
+          "excel_keywords": [
+            "Bad tube ejection",
+            "Tube rejection",
+            "Monitoring",
+            "Discharge verification (optional)",
+            "Deflection unit",
+            "Tube ejector"
+          ],
+          "is_mandatory": false
+        }
+      ]
+    }
+  }
+}

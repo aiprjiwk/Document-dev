@@ -1,0 +1,484 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<MISConfiguration xmlns="http://www.w3.org/1999/xhtml">
+	<DocRoot>C:\MIS-Daten\55582</DocRoot>
+	<DocMain>index.html</DocMain>
+	<Docs>
+
+        <DocPath MISTag="VI:.VC_MX_000_MS_CircuitBreaker">21000009_Safety breaker has been triggered.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_000_MS_ControlVoltage">21000000_Fault power supply control voltage.html</DocPath>
+	    <DocPath MISTag="VI:.VC_MX_000_MS_MotorProtection">21000003_Motor protection switch has been triggered.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_000_MS_PowerSupply">21000001_Power supply failure.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_000_MW_UpsNotReady">21000012_UPS buffer not ready. Do not switch off!.html</DocPath>
+
+
+		<DocPath MISTag="VI:.VC_MX_001_MS_EStopCircuit">21000100_Safety relay circuit not ready.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_001_MS_EStopRear">21000102_Emergency stop rear.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_001_MS_EStopFront">21000103_Emergency stop front.html</DocPath>
+
+
+		<DocPath MISTag="VI:.VC_MX_002_MS_ProGuard1">21000200_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_002_MS_ProGuard2">21000201_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_002_MS_ProGuard3">21000202_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_002_MS_ProGuard4">21000203_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_002_MS_ProGuard5">21000204_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_002_MS_ProGuard6">21000205_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_002_MS_ProGuard7">21000213_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_002_MS_ProGuard8">21000215_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_002_MS_ProGuardCircuit">21000206_Protective guarding safety relay circuit not ready.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_002_MS_ProGuardLocked1">21000207_Protective guarding @1s@ not locked.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_002_MS_ProGuardLocked2">21000208_Protective guarding @1s@ not locked.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_002_MS_ProGuardLocked3">21000209_Protective guarding @1s@ not locked.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_002_MS_ProGuardLocked4">21000210_Protective guarding @1s@ not locked.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_002_MS_ProGuardLocked5">21000211_Protective guarding @1s@ not locked.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_002_MS_ProGuardLocked6">21000212_Protective guarding @1s@ not locked.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_002_MS_ProGuardLocked7">21000214_Protective guarding @1s@ not locked.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_002_MS_ProGuardLocked8">21000214_Protective guarding @1s@ not locked.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_000_MW_UpsNotReady">21000012_UPS buffer not ready. Do not switch off!.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_003_MS_EStopPanel">21000300_Emergency stop, touch panel.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_003_MS_HMIFormatError">21000306_Format transfer was faulty.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_003_MS_VisuIOWriteActiv">21000304_Manual switching on off of outputs is activated.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_004_MS_CompUnauthorized">21000403_A component that has not been authorized by IWK has been recognized. Please contact the IWK Service Department.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_004_MS_FaultTM5">21000404_Fault on the TM5 module.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_004_MS_PLC">21000405_System fault detected in the PLC.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_005_MS_CompAirExhaust">21000501_After switching off the maintenance unit, the compressed-air lines behind the main valve are not vented.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_005_MS_CompressedAirLow">21000500_Compressed air low at main valve.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_006_MS_AbortOpMode">21000612_Aborting operating mode.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_006_MS_FunctionRequired">21000615_Switch on function for production.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_006_MS_HomingNec">21000604_Reference run is required.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_006_MS_OutWSWindow">21000613_Axis is not in synchronous window.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_006_MW_FunctionRequired">21000616_Switch on function for production.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_006_MW_HoldingPos">21000614_Holding position.html</DocPath>
+
+
+        <DocPath MISTag="VI:.VC_MX_007_MS_MainContactor">21000703_Mains contactor, servo power supply, has not switched correctly.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_007_MS_SystemBootFault">21000700_Fault PLC Boot-up.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_007_MS_SystemFault">21000701_PLC - System.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_008_MS_ValvePack">21000800_Valve terminal not ready.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_012_MS_SystemNotRdy">21001202_Evaluation unit is not ready for operation.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_022_MF_OutWSWindow">21002205_Carton chain is not in WSWindow Shift register will be deleted.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_022_MS_DataDriveError">21002201_Gen. drive error carton chain.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_022_MS_ElecDriveError">21002202_El. drive error carton chain.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_022_MS_MechDriveError">21002203_Mech. drive error carton chain.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_022_MW_AbsEncSetNec">21002200_Set encoder carton chain required.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_022_MW_CollisionRange">21002204_Carton chain is in collision range with reverse gear box.html</DocPath>
+
+
+
+
+        <DocPath MISTag="VI:.VC_MX_040_MS_CartonMin">21004101_Min. supply of cartons on infeed conveyor is too low.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_041_MW_PreWarning">21004100_Prewarning, min. supply of cartons on infeed conveyor is too low.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_042_MS_LOHFWorkPos">21004202_Infeed latch opener hold-finger not in work  position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_042_MS_LOPFHomePos">21004203_Infeed latch opener push-finger not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_042_MS_LOPFWorkPos">21004204_Infeed latch opener push-finger not in work  position.html</DocPath>      
+        <DocPath MISTag="VI:.VC_MX_042_MS_RGDataDriveError">21004207_Gen. drive error reverse gear box.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_042_MS_RGElecDriveError">21004208_El. drive error reverse gear box.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_042_MS_RGMechDriveError">21004209_Mech. drive error reverse gear box.html</DocPath>      
+        <DocPath MISTag="VI:.VC_MX_042_MS_SLDataDriveError">21004210_Gen. drive error slide carton infeed.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_042_MS_SLElecDriveError">21004211_El. drive error slide carton infeed.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_042_MS_SLMechDriveError">21004212_Mech. drive error slide carton infeed.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_042_MS_LOHFHomePos">21004201_Infeed latch opener hold-finger not in home  position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_042_MS_MFGuideHomePos">21004205_Main flap guide not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_042_MS_MFGuideWorkPos">21004206_Main flap guide not in work position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_042_MS_FormatPlate">21004200_Carton magazine wrong or missing protective cover plate.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_043_MS_BadNotDisch">21004304_Bad carton not ejected.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_043_MS_CylinderHomePos">21004305_Carton ejection cylinder not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_043_MS_CylinderWorkPos">21004306_Carton ejection cylinder not in work position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_043_MS_DynCtrlDischVer">21004307_Dynamic sensor monitoring reject verification sensor.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_043_MS_LOHFHomePos">21004308_Carton ejection latch opener hold finger not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_043_MS_LOHFWorkPos">21004309_Carton ejection latch opener hold finger not in work position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_043_MS_LOPFHomePos">21004310_Carton ejection latch opener push finger not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_043_MS_LOPFWorkPos">21004311_Carton ejection latch opener push finger not in work position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_043_MW_EjectManual">21004312_Carton ejection manual is active.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_043_MF_DischargeDV">21004300_Bad package not discharge. Remove last product.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_043_MF_RemovePackage">21004313_Remove package from cartonchain at ejection station.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_046_MS_ArmHomePos">21004600_Arm suction cup not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_046_MS_ArmWorkPos">21004601_Arm suction cup not in work position.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_049_MF_RemovePackage">21004916_Remove package from cartonchain at ejection station.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_BadPackage">21004901_Bad package detected before discharge station.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_CDDataDriveError">21004902_Gen. drive error carton discharge.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_CDElecDriveError">21004903_El. drive error carton discharge.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_CDMechDriveError">21004904_Mech. drive error carton discharge.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_CDV">21004905_Bad package at discharge station. Remove last product.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_GoodNotDisch">21004906_Good carton not discharged.html</DocPath>		
+        <DocPath MISTag="VI:.VC_MX_049_MS_LOHFHomePos">21004907_Discharge latch opener hold-finger not in home  position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_LOHFWorkPos">21004908_Discharge latch opener hold-finger not in work  position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_LOHomePos">21004909_Discharge latch opener not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_LOPFHomePos">21004910_Discharge latch opener push-finger not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_LOPFWorkPos">21004911_Discharge latch opener push-finger not in work  position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_LOWorkPos">21004912_Discharge latch opener not in work position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_PusherHomePos">21004913_Discharge pusher not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MS_PusherWorkPos">21004914_Discharge pusher not in work position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_049_MW_CartonJam">21004915_Backup on outlet conveyor.html</DocPath>
+
+
+
+
+       <DocPath MISTag="VI:.VC_MX_050_MS_GlueNotPlugged">21005000_Connecting plug glue unit is not connected.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_050_MS_GlueUnitMinLevel">21005008_Min. supply level glue is too low.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_050_MS_GlueUnitNotReady">21005001_Glue unit is not ready for operation.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_050_MW_GlueUnitNotReady">21005002_Glue unit is not ready for operation.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_050_MW_PreWarning">21005004_Prewarning, glue is below min. supply level.html</DocPath>
+
+
+
+       <DocPath MISTag="VI:.VC_MX_050_MS_GlueNotPlugged">21005000_Connecting plug glue unit is not connected.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_050_MS_GlueUnitMinLevel">21005008_Min. supply level glue is too low.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_050_MS_GlueUnitNotReady">21005001_Glue unit is not ready for operation.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_050_MW_GlueUnitNotReady">21005002_Glue unit is not ready for operation.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_050_MW_PreWarning">21005004_Prewarning, glue is below min. supply level.html</DocPath>
+
+
+        
+       <DocPath MISTag="VI:.VC_MX_052_MS_MFFeederBotHomePos">21005204_Upper main flap feeder bottom not in home position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_MFFeederBotWorkPos">21005205_Upper main flap feeder bottom not in work position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_MFFeederTopHomePos">21005206_Upper main flap feeder top not in home position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_MFFeederTopWorkPos">21005207_Upper main flap feeder top not in work position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_MFHolderBotHomePos">21005208_Upper main flap holder bottom not in home position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_MFHolderBotWorkPos">21005209_Upper main flap holder bottom not in work position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_MFHolderTopHomePos">21005210_Upper main flap holder top not in home position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_MFHolderTopWorkPos">21005211_Upper main flap holder top not in work position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_UFFeederBotHomePos">21005212_Lower main flap feeder bottom not in home position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_UFFeederBotWorkPos">21005213_Lower main flap feeder bottom not in work position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_UFFeederTopHomePos">21005214_Lower main flap feeder top not in home position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_UFFeederTopWorkPos">21005215_Lower main flap feeder top not in work position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_UFHolderBotHomePos">21005216_Lower main flap holder bottom not in home position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_UFHolderBotWorkPos">21005217_Lower main flap holder bottom not in work position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_UFHolderTopHomePos">21005218_Lower main flap holder top not in home position.html</DocPath>
+       <DocPath MISTag="VI:.VC_MX_052_MS_UFHolderTopWorkPos">21005219_Lower main flap holder top not in work position.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_054_MS_DFCloserBotHomePos">21005400_Dust flap bottom not in home  position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_054_MS_DFCloserBotWorkPos">21005401_Dust flap bottom not in work  position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_054_MS_DFCloserTopHomePos">21005402_Dust flap top not in home  position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_054_MS_DFCloserTopWorkPos">21005403_Dust flap top not in work  position.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_055_MS_DataDriveError">21005501_Gen. drive error tuck in bottom.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_055_MS_ElecDriveError">21005502_El. drive error tuck in bottom.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_055_MS_MechDriveError">21005503_Mech. drive error tuck in bottom.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_055_MF_OutWSWindow">21005504_Tuck in bottom is not in WSWindow Shift register will be deleted.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_056_MS_DataDriveError">21005601_Gen. drive error tuck in top.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_056_MS_ElecDriveError">21005602_El. drive error tuck in top.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_056_MS_MechDriveError">21005603_Mech. drive error tuck in top.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_056_MF_OutWSWindow">21005504_Tuck in top is not in WSWindow Shift register will be deleted.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_057_MS_DFSpreaderHomePos">21005700_Dust flap spreader not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_057_MS_DFSpreaderWorkPos">21005701_Dust flap spreader not in working position.html</DocPath> 
+        <DocPath MISTag="VI:.VC_MX_057_MF_OutWSWindow">21005604_Tuck in bottom is not in WSWindow Shift register will be deleted.html</DocPath>
+
+
+        <DocPath MISTag="VI:.VC_MX_058_MS_PusherBotHomePos">21005800_Past pusher bottom not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_058_MS_PusherBotWorkPos">21005801_Past pusher bottom not in working position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_058_MS_PusherTopHomePos">21005802_Past pusher top not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_058_MS_PusherTopWorkPos">21005803_Past pusher top not in working position.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_100_MF_HeightMonitoring">21010000_Upstanding product at product sensing. Please remove product and carton..html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_100_MS_CFProductSensing">21010001_Consecutive fault product sensing.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_100_MS_DynCtrlProdSensing">21010002_Dynamic sensor monitoring product sensing.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_100_MS_PusherHomePos">21010003_Product sensing pusher not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_100_MS_PusherWorkPos">21010004_Product sensing pusher not in working position.html</DocPath>
+
+
+
+		<DocPath MISTag="VI:.VC_MX_103_MS_CfDustFlapBot">21010300_Consecutive fault dust flap bottom.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_103_MS_CfDustFlapTop">21010303_Consecutive fault dust flap top.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_104_MS_CfMainFlapBot">21010400_Consecutive fault main flap bottom.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_104_MS_CfMainFlapTop">21010401_Consecutive fault main flap top.html</DocPath>
+
+
+		<DocPath MISTag="VI:.VC_MX_101_MS_CfCartonMissing">21010105_Dynamic sensor control transfer previous pocket.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_101_MS_DynCtrlCartonBottom">21010103_Dynamic sensor monitoring carton draw-off.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_101_MS_DynCtrlCartonTop">21010104_Dynamic sensor monitoring closure top.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_101_MS_DynCtrlCartTransfer">21010105_Dynamic sensor control transfer previous pocket.html</DocPath>
+
+
+        <DocPath MISTag="VI:.VC_MX_152_MS_CfLeafletBotCode">21015202_Consecutive fault Leaflet bottom code reader.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_152_MS_CfLeafletTopCode">21015204_Consecutive fault Leaflet top code reader.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_152_MS_DeviceBotNotRdy">21015205_Leaflet code reader device bottom not ready.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_152_MS_DeviceTopNotRdy">21015206_Leaflet code reader device top not ready.html</DocPath>
+
+
+
+
+        <DocPath MISTag="VI:.VC_MX_154_MS_CfBookletCode">21015401_Consecutive fault booklet code.html</DocPath>
+
+ 
+
+
+		<DocPath MISTag="VI:.VC_MX_303_MS_DataDriveError">21030300_Gen. drive error outlet conveyor.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_303_MS_ElecDriveError">21030301_El. drive error outlet conveyor.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_303_MS_MechDriveError">21030302_Mech. drive error outlet conveyor.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_303_MS_ProGuard1">21030303_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_303_MS_ProGuard2">21030304_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_303_MS_ProGuard3">21030305_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_303_MS_ProGuardLock1">21030306_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_303_MS_ProGuardLock2">21030307_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_303_MS_ProGuardLock3">21030308_Protective guarding @1s@ not locked.html</DocPath>
+         
+
+		<DocPath MISTag="VI:.VC_MX_200_MF_OutWSWindow">21020008_Embossing bottom out of sync. windownShift register will be deleted.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_200_MS_DataDriveError">21020001_Gen. drive error embossing bottom.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_200_MS_ElecDriveError">21020002_El. drive error embossing bottom.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_200_MS_MechDriveError">21020004_Mech. drive error embossing bottom.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_200_MS_HomePos">21020003_Embossing cylinder bottom not in home position.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_200_MS_RollerHomePos">21020005_Pressing roller embossing bottom not  in home position.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_200_MS_RollerWorkPos">21020006_Pressing roller embossing top not in working position.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_200_MS_WorkPos">21020007_Embossing cylinder bottom not in working position.html</DocPath>		
+		
+
+		<DocPath MISTag="VI:.VC_MX_521_MF_ErrRemoveProd">21052104_Fault product transfer system.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_521_MF_OutWSWindow">21052105_Product transfer system out of sync. Window.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_DataDriveError">21052106_Gen. drive error product transfer system.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_ElecDriveError">21052107_El. drive error product transfer system.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_EStopTrans1">21052108_Emergency stop transfer rear.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_MechDriveError">21052109_Mech. drive error product transfer system.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuard1">21052111_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuard2">21052112_Protective guarding @1s@ is open.html</DocPath>		
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuard3">21052113_Protective guarding @1s@ is open.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_521_MS_ProGuard4">21052114_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuard5">21052115_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuard6">21052116_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuardLock1">21052117_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuardLock2">21052118_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuardLock3">21052119_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuardLock4">21052120_Protective guarding @1s@ not locked.html</DocPath>		
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuardLock5">21052121_Protective guarding @1s@ not locked.html</DocPath>		
+		<DocPath MISTag="VI:.VC_MX_521_MS_ProGuardLock6">21052122_Protective guarding @1s@ not locked.html</DocPath>		
+
+
+        
+
+        <DocPath MISTag="VI:.VC_MX_522_MS_RakeNotClose">21052200_Rake not close.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_RakeNotOpen">21052201_Rake not open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_TInserterDataDriveError">21052202_Gen. drive error tube inserter.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_TInserterElecDriveError">21052203_El. drive error tube inserter.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MF_ErrRemoveProd">21052205_Fault product transfer system.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MF_OutWSWindow">21052206_Product transfer system out of sync. Window.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_TInserterMechDriveError">21052204_Mech. drive error tube inserter.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_DataDriveError">21052207_Gen. drive error product transfer system.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_EStopTrans1">21052209_Emergency stop transfer rear.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ElecDriveError">21052208_El. drive error product transfer system.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_MechDriveError">21052210_Mech. drive error product transfer system.html</DocPath>			
+		<DocPath MISTag="VI:.VC_MX_522_MS_MouthPieceHomePos">21052211_Mouth piece not in home position.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_MouthPieceWorkPos">21052212_Mouth piece not in working position.html</DocPath>			
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuard1">21052214_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuard2">21052215_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuard3">21052216_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuard4">21052217_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuard5">21052218_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuard6">21052219_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuardLock1">21052220_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuardLock2">21052221_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuardLock3">21052222_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuardLock4">21052223_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuardLock5">21052224_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MS_ProGuardLock6">21052225_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_522_MF_ErrRemoveProdLeaf">21052227_Remove products leaflet from transfer.html</DocPath>
+
+
+
+       <DocPath MISTag="VI:.VC_MX_523_MF_ErrRemoveProd">21052303_Fault product transfer system.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MF_OutWSWindow">21052304_Product transfer system out of sync. Window.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_DataDriveError">21052305_Gen. drive error product transfer system.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ElecDriveError">21052306_El. drive error product transfer system.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_EStopTrans1">21052307_Emergency stop transfer rear.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_MechDriveError">21052308_Mech. drive error product transfer system.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuard1">21052310_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuard2">21052311_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuard3">21052312_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuard4">21052313_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuard5">21052314_Protective guarding @1s@ is open.html</DocPath>			
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuard6">21052315_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuardLock1">21052316_Protective guarding @1s@ not locked.html</DocPath>			
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuardLock2">21052317_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuardLock3">21052318_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuardLock4">21052319_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuardLock5">21052320_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_523_MS_ProGuardLock6">21052321_Protective guarding @1s@ not locked.html</DocPath>
+
+
+
+        <DocPath MISTag="VI:.VC_MX_505_MS_DoubleBooklet">21050500_Double booklet.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_505_MS_MinBackup">21050501_Min. supply of booklets is too low.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_505_MS_MissingBooklet">21050502_Missing booklet.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_505_MS_NotReady">21050503_Booklet transfer not ready.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_505_MS_ProGuard1">21050504_Protective guarding @1s@ is open.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_505_MS_ProGuard2">21050505_Protective guarding @1s@ is open.html</DocPath>
+
+
+        <DocPath MISTag="VI:.VC_MX_506_MF_LeafHandRemove">21050633_Remove leaflets from transport belt.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_CFLeaflet">21050609_Consecutive fault leaflet not inserted.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_CTDataDriveError">21050610_Gen. drive error leaflet cross transport.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_CTElecDriveError">21050611_El. drive error leaflet cross transport.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_CTMechDriveError">21050613_Mech. drive error leaflet cross transport.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_DriveError">21050614_Leaflet transfer drive error.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_LeafDrawOff">21050620_Leaflet not drawn off.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_LeafInPocket">21050621_Leaflet jammed in folding pocket.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_LeafletBeltError">21050623_Leaflet belt drive error.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_LeafletMin">21050624_Min. supply leaflets is too low.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_LeafTransNotInPick">21050600_Leaflet plunger not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_LeafTransNotInPlace">21050601_Leaflet plunger not in work position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_LUDataDriveError">21050625_Gen. drive error leaflet unit.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_LUElecDriveError">21050626_El. drive error leaflet unit.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_LUMechDriveError">21050627_Mech. drive error leaflet unit.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_OpenerConvHomePos">21050628_Leaflet prefolded conveyor not close.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_OpenerConvWorkPos">21050629_Leaflet prefolded conveyor not open.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_Overload">21050616_Overload clutch at leaflet unit has been tripped.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_PlungerHomePos">21050630_Leaflet prefolded plunger not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_PlungerWorkPos">21050631_Leaflet prefolded plunger not in working position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_ProGuard1">21050632_Protective guarding @1s@ is open.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_ProGuard2">21050635_Protective guarding @1s@ is open.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_ProGuardLock1">21050636_Protective guarding @1s@ not locked.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_ProGuardLock2">21050638_Protective guarding @1s@ not locked.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_SucArmHomePos">21050639_Leaflet prefolded suction arm not in home position.html</DocPath>
+        <DocPath MISTag="VI:.VC_MX_506_MS_SucArmWorkPos">21050640_Leaflet prefolded suction arm not in working position.html</DocPath>
+
+
+		<DocPath MISTag="VI:.VC_MX_590_MS_EStop1">21059001_Manual infeed emergency stop 1 pressed.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_EStop2">21059002_Manual infeed emergency stop 2 pressed.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuard1">21059003_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuard2">21059004_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuard3">21059005_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuard4">21059006_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuard5">21059007_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuard6">21059008_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuardLock1">21059011_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuardLock2">21059012_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuardLock3">21059013_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuardLock4">21059014_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuardLock5">21059015_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_ProGuardLock6">21059016_Protective guarding @1s@ not locked.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_SafetyFlap1">21059017_Safety flap @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_SafetyFlap2">21059008_Protective guarding @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_SafetyFlap3">21059019_Safety flap @1s@ is open.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_590_MS_SafetyFlap4">21059020_Safety flap @1s@ is open.html</DocPath>
+
+
+
+
+
+		<DocPath MISTag="VI:.VC_MX_760_MS_DownstrJam">21076016_Maximum product back-up. at downstream machine.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_760_MS_EStopDownstr">21076000_Emergency stop downstream machine.html</DocPath>
+		<DocPath MISTag="VI:.VC_MX_760_MS_NotReady">21076003_Downstream machine is not ready for operation.html</DocPath>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	</Docs>
+</MISConfiguration>

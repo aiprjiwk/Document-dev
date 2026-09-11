@@ -1,0 +1,36 @@
+# Python byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables & Secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Databases & Runtime Output
+*.db
+*.sqlite
+*.sqlite3
+ocr_processing_log.csv
+Output/
+0_Data/
+dataset_images/
+
+# OS Generated Files
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo

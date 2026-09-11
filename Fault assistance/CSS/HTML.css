@@ -1,0 +1,356 @@
+﻿.Paragraph dd:empty {     
+                display: none; 
+}
+
+body {
+	background-color: #F0F0F0;
+	margin: 10px;
+	text-align: center;
+}
+
+.page {
+	background-color: #FFFFFF;
+	width: 990px;
+	margin: 0px auto;
+	text-align: left;
+	border: 1px solid #C0C0C0;
+}
+
+.head {
+	background-color: #4179D6;
+}
+
+
+.contentLayout {
+	border: 0px;
+	margin: 0px; 
+	padding: 0px;
+	width: 100%;
+	border-collapse: separate;
+	table-layout: fixed;
+}
+
+.contentLayoutOne {
+	width: 210px;
+	font-size: 9pt;
+	background-color: #F8F8F8;
+	vertical-align: top;
+	border-right: 1px solid #FFFFFF;
+}
+
+.rtl .contentLayoutOne {
+	border-right: none;
+	border-left: 1px solid #FFFFFF;
+}
+
+.contentLayoutTwo {
+	width: 10px;
+	border-left: 1px solid #D8D8D8;
+}
+
+.rtl .contentLayoutTwo {
+	border-left: none;
+	border-right: 1px solid #D8D8D8;
+}
+
+.contentLayoutTwo img {
+	width: 10px;
+	height: 500px;
+}
+
+.contentLayoutThree {
+	vertical-align: top;
+}
+
+.content {
+	margin-right: 10px;
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-bottom: 10px;
+	position: relative;
+}
+
+.rtl .content {
+	margin-right: 0px;
+	margin-left: 10px;
+}
+
+/*
+===================================================
+	Triplet navigation classes
+===================================================
+*/
+
+.handbookSelection {
+	margin-top: 8px;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+.handbookSelection select {
+	width: 100%;
+}
+
+.tripletHead {
+	margin-left: 1px;
+	margin-top: 8px;
+	padding: 5px;
+	font-weight: bold;
+}
+
+.rtl .tripletHead {
+	margin-left: 0px;
+	margin-right: 1px;
+	text-align: right;
+}
+
+.tripletHeadComponent {
+	background-color: #DB9234;
+}
+
+.tripletHeadInfoType {
+	background-color: #DFCA5D;
+}
+
+.tripletParent, .tripletBody {
+	margin-left: 1px;
+	margin-top: 4px;
+	padding: 5px;
+}
+
+.rtl .tripletParent, .rtl .tripletBody {
+	margin-left: 0px;
+	margin-right: 1px;
+}
+
+.tripletParentInfoType {
+	background-color: #D5C572; 
+}
+
+.tripletParentComponent {
+	background-color: #DB9E50; 
+}
+
+.tripletBodyInfoType {
+	background-color: #EADB9A;
+	color: #8F803F;
+	overflow: hidden;
+}
+
+.tripletBodyComponent {
+	background-color: #E5B472;
+	color: #875533;
+	overflow: hidden;
+}
+
+.tripletInfo {
+	padding: 2px;
+	position: relative;
+	font-size: 11px;
+	letter-spacing: 1px;
+}
+
+.rtl .tripletInfo {
+	text-align: right;
+}
+
+.tripletImg {
+	float: left;
+	margin-top: 3px;
+}
+
+.rtl .tripletImg {
+	float: right;
+}
+
+.tripletText {
+	margin-left: 15px;
+}
+
+.rtl .tripletText {
+	margin-left: 0px;
+	margin-right: 15px;
+}
+
+
+.tripletNavigation a:hover {
+	border-bottom: 1px solid white;
+}
+
+.tripletInfoCurrent a {
+	color: #8F803F;
+	cursor: text;
+}
+
+
+
+
+/* 
+=====================================================
+	Language selection
+=====================================================
+*/
+
+.languageSelection {
+	font-size: 11px;
+	padding-right: 4px;
+	vertical-align: middle;
+	text-align: right;
+}
+
+.rtl .languageSelection {
+	text-align: left;
+}
+
+/*
+=====================================================
+	Offline search
+=====================================================
+*/
+
+.searchResult {
+	margin-top: 20px;
+	padding: 3px;
+	background-color: #EEEEEE;
+	border-top: 1px solid #B0B0B0;
+	border-bottom: 1px solid #B0B0B0;
+	text-align: left;
+}
+
+.rtl .searchResult {
+	text-align: right;
+}
+
+
+.searchResult table {
+	width: 100%;
+}
+
+
+.searchResult * {
+	margin: 0px;
+	padding: 0px;
+}
+
+.rtl .searchResultContent {
+	text-align: right;
+}
+
+.searchResultPaging {
+	text-align: left;
+}
+
+.rtl .searchResultPaging {
+	text-align: right;
+}
+
+.searchResultPagingLink {
+	color: #000000 !important;
+}
+
+.searchResultPagingActive {
+	font-weight: bold;
+	color: #FF0000;
+}
+
+.searchResultInfo {
+	text-align: right;
+}
+
+.rtl .searchResultInfo {
+	text-align: left;
+}
+
+.searchEntry {
+	margin-top: 20px;
+}
+
+.rtl .searchEntry {
+	direction: rtl;
+	unicode-bidi: embed;
+}
+
+
+.searchEntryTitle {
+	font-size: 12pt;
+}
+
+.searchEntryHighlight {
+	font-weight: bold;
+}
+
+.searchEntryInfo {
+	color: green;
+}
+
+.rtl .searchEntryInfo {
+	direction: rtl;
+	unicode-bidi: embed;
+	text-align: right;
+}
+
+
+/*
+=====================================================
+	Tree rendering
+=====================================================
+*/
+
+.treeNavigation {
+	margin-top: 8px;
+}
+
+#tree {
+	width: 207px;
+	margin: 3px;
+}
+
+#tree * {
+	font-size: 11px;
+}
+
+#tree table {
+	margin: 0px;
+	padding: 0px;
+}
+
+.treeNodeIcon, .treeNodeIconEmpty {
+	width: 16px;
+	height: 16px;
+	white-space: nowrap;
+}
+
+.treeNodeIcon {
+	cursor: pointer;
+}
+
+.treeNodeText {
+	cursor: pointer;
+	vertical-align: top;
+	line-height: 15px;
+}
+
+#video_img:hover{
+ 	position:relative;
+ 	opacity:.85;
+}
+
+#video_img:hover span {
+	background: url(../Images/PlayIcon.png) no-repeat center;
+	width: 100px;
+	height: 100px;
+	display: block;
+	z-index:100;
+	position:absolute;
+	opacity:.85;
+}
+
+code {
+	background: #D8DDE1;
+    padding: 2px 3px;
+}
+
+td.contentLayoutOne code {
+    background: none;
+    padding: 0px;
+}

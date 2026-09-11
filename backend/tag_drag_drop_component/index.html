@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Tag Drag & Drop</title>
+<style>
+  :root {
+    --primary: #ff4b4b;
+    --primary-hover: #e03a3a;
+    --bg-card: #ffffff;
+    --bg-pool: #f8fafc;
+    --border: #e2e8f0;
+    --border-hover: #3b82f6;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --tag-bg: #fee2e2;
+    --tag-border: #fca5a5;
+    --tag-text: #991b1b;
+    --hold-bg: #fef3c7;
+    --hold-border: #fcd34d;
+    --hold-text: #92400e;
+    --pool-tag-bg: #f1f5f9;
+    --pool-tag-text: #334155;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+  body {
+    background: transparent;
+    color: var(--text-main);
+    padding: 10px 4px 40px 4px;
+    font-size: 13px;
+  }
+
+  .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #ffffff;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-primary { background: #ff4b4b; color: white; }
+  .btn-primary:hover { background: #e03a3a; transform: translateY(-1px); }
+  .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid var(--border); }
+  .btn-secondary:hover { background: #e2e8f0; }
+
+  .search-box {
+    padding: 7px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    width: 260px;
+    outline: none;
+  }
+  .search-box:focus { border-color: #ff4b4b; }
+
+  /* Pool Section */
+  .pool-section {
+    background: var(--bg-pool);
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    transition: all 0.2s ease;
+  }
+  .pool-section.drag-over {
+    background: #eff6ff;
+    border-color: #3b82f6;
+  }
+  .pool-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pool-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  /* Tag Chips */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.12s, box-shadow 0.12s;
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    color: var(--tag-text);
+  }
+  .chip:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+  }
+  .chip:active { cursor: grabbing; }
+  .chip.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+  }
+  .chip.chip-pool {
+    background: var(--pool-tag-bg);
+    border-color: #cbd5e1;
+    color: var(--pool-tag-text);
+  }
+  .chip.chip-hold {
+    background: var(--hold-bg);
+    border-color: var(--hold-border);
+    color: var(--hold-text);
+    font-weight: 700;
+  }
+  .chip-remove {
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.7;
+    margin-left: 2px;
+  }
+  .chip-remove:hover { opacity: 1; color: #000; }
+
+  /* Category Groups */
+  .cat-group {
+    margin-bottom: 24px;
+  }
+  .cat-header {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Cards Grid */
+  .cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .tp-card {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: grid;
+    grid-template-columns: 280px 1fr 140px;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .tp-card.drag-over {
+    border-color: #ff4b4b;
+    background: #fff5f5;
+    box-shadow: 0 0 0 2px rgba(255,75,75,0.2);
+  }
+  .tp-card.is-hold {
+    border-color: #fcd34d;
+    background: #fffbeb;
+  }
+
+  .tp-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .tp-title {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: #0f172a;
+  }
+  .tp-status {
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+
+  .drop-zone {
+    min-height: 44px;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    background: #fafafa;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .drop-zone.drag-over {
+    background: #fee2e2;
+    border-color: #ff4b4b;
+  }
+  .drop-zone:empty::before {
+    content: "🖱️ ลากฟังก์ชันมาวางที่นี่ หรือปล่อยว่างเพื่อลบแถวออก";
+    color: #94a3b8;
+    font-size: 11.5px;
+    font-style: italic;
+  }
+
+  .tp-mand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #475569;
+    user-select: none;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-actions">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <button class="btn btn-primary" id="save-btn" onclick="saveMappings()">💾 บันทึกการจับคู่ Tag (Save to JSON)</button>
+    <button class="btn btn-secondary" onclick="addHoldToAllEmpty()">🟠 ใส่ Hold ในข้อที่ว่าง</button>
+    <button class="btn btn-secondary" onclick="clearAllToPool()">🧹 ล้าง Tag ทั้งหมดกลับเข้าคลัง</button>
+  </div>
+  <input type="text" class="search-box" id="search-input" placeholder="🔍 ค้นหาฟังก์ชันในคลัง..." oninput="filterPool()">
+</div>
+
+<!-- Available Functions Pool -->
+<div class="pool-section" id="pool-dropzone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'pool')">
+  <div class="pool-title">
+    <span>📦 คลัง Function จาก Excel (ลากชิปด้านล่างไปปล่อยในข้อความ Word ที่ต้องการ):</span>
+    <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);" id="pool-count">0 ฟังก์ชัน</span>
+  </div>
+  <div class="pool-chips" id="pool-container">
+    <!-- Pool chips rendered here -->
+  </div>
+</div>
+
+<!-- Word Test Points Categories Container -->
+<div id="categories-container">
+  <!-- Test point cards rendered here -->
+</div>
+
+<script>
+let currentData = {
+  protocolName: "",
+  tags: [],
+  allExcelFuncs: []
+};
+
+let draggedItem = null; // { name: string, sourceType: 'pool'|'assigned', sourceTagId: string|null }
+
+// Handshake with Streamlit
+function sendToStreamlit(value) {
+  window.parent.postMessage({
+    isStreamlitMessage: true,
+    type: "streamlit:setComponentValue",
+    value: value
+  }, "*");
+}
+
+function updateFrameHeight() {
+  setTimeout(() => {
+    const height = Math.max(document.body.scrollHeight + 50, 450);
+    window.parent.postMessage({
+      isStreamlitMessage: true,
+      type: "streamlit:setFrameHeight",
+      height: height
+    }, "*");
+  }, 100);
+}
+
+window.addEventListener("message", function(event) {
+  if (event.data && event.data.type === "streamlit:render") {
+    const args = event.data.args;
+    if (args) {
+      currentData.protocolName = args.protocolName || "";
+      currentData.tags = JSON.parse(JSON.stringify(args.tags || []));
+      currentData.allExcelFuncs = args.allExcelFuncs || [];
+      renderApp();
+    }
+  }
+});
+
+// Notify component ready
+window.parent.postMessage({
+  isStreamlitMessage: true,
+  type: "streamlit:componentReady",
+  apiVersion: 1
+}, "*");
+
+// Render App
+function renderApp() {
+  renderPool();
+  renderCards();
+  updateFrameHeight();
+}
+
+function getAssignedFunctions() {
+  const set = new Set();
+  currentData.tags.forEach(t => {
+    (t.excel_keywords || []).forEach(k => set.add(k.trim().toLowerCase()));
+  });
+  return set;
+}
+
+function renderPool() {
+  const container = document.getElementById("pool-container");
+  container.innerHTML = "";
+  const assignedSet = getAssignedFunctions();
+  const searchFilter = (document.getElementById("search-input").value || "").toLowerCase();
+
+  // Always offer "Hold" chip in pool
+  const holdChip = createChip("Hold", "pool", null, true);
+  container.appendChild(holdChip);
+
+  let poolCount = 0;
+  currentData.allExcelFuncs.forEach(func => {
+    if (func.toLowerCase() === "hold") return;
+    if (!assignedSet.has(func.toLowerCase())) {
+      if (!searchFilter || func.toLowerCase().includes(searchFilter)) {
+        const chip = createChip(func, "pool", null, false);
+        container.appendChild(chip);
+        poolCount++;
+      }
+    }
+  });
+
+  document.getElementById("pool-count").innerText = `${poolCount} ฟังก์ชันพร้อมใช้งาน`;
+}
+
+function createChip(name, sourceType, sourceTagId, isHold) {
+  const chip = document.createElement("div");
+  chip.className = "chip" + (sourceType === "pool" ? " chip-pool" : "") + (isHold || name.toLowerCase() === "hold" ? " chip-hold" : "");
+  chip.draggable = true;
+  chip.dataset.func = name;
+  chip.dataset.sourceType = sourceType;
+  if (sourceTagId) chip.dataset.sourceTagId = sourceTagId;
+
+  chip.innerHTML = `<span>${name}</span>` + (sourceType === "assigned" ? `<span class="chip-remove" onclick="removeChip(event, '${sourceTagId}', '${escapeHtml(name)}')">&times;</span>` : "");
+
+  chip.addEventListener("dragstart", (e) => {
+    draggedItem = {
+      name: name,
+      sourceType: sourceType,
+      sourceTagId: sourceTagId
+    };
+    chip.classList.add("dragging");
+    e.dataTransfer.setData("text/plain", name);
+    e.dataTransfer.effectAllowed = "move";
+  });
+
+  chip.addEventListener("dragend", () => {
+    chip.classList.remove("dragging");
+    draggedItem = null;
+    document.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
+  });
+
+  return chip;
+}
+
+function escapeHtml(str) {
+  return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+function renderCards() {
+  const container = document.getElementById("categories-container");
+  container.innerHTML = "";
+
+  // Group tags by category
+  const cats = {};
+  currentData.tags.forEach(t => {
+    const c = t.category || "General";
+    if (!cats[c]) cats[c] = [];
+    cats[c].push(t);
+  });
+
+  for (const [catName, tagsList] of Object.entries(cats)) {
+    const catGroup = document.createElement("div");
+    catGroup.className = "cat-group";
+    catGroup.innerHTML = `<div class="cat-header">📁 หมวดหมู่: ${catName}</div>`;
+
+    const grid = document.createElement("div");
+    grid.className = "cards-grid";
+
+    tagsList.forEach(tag => {
+      const card = document.createElement("div");
+      const isHold = (tag.excel_keywords || []).some(k => k.toLowerCase() === "hold");
+      card.className = "tp-card" + (isHold ? " is-hold" : "");
+      card.id = `card-${tag.id}`;
+
+      // Left: Info
+      let statusText = `<span style="color: #64748b;">⚪ ไม่ได้ผูก Tag (ลบแถวออก)</span>`;
+      if (isHold) {
+        statusText = `<span style="color: #b45309; font-weight: 600;">🟠 พักไว้ (Hold - ลบแถวออก)</span>`;
+      } else if (tag.excel_keywords && tag.excel_keywords.length > 0) {
+        statusText = `<span style="color: #16a34a; font-weight: 600;">🟢 ผูกไว้ ${tag.excel_keywords.length} ฟังก์ชัน</span>`;
+      }
+
+      card.innerHTML = `
+        <div class="tp-info">
+          <div class="tp-title">${tag.test_point_text}</div>
+          <div class="tp-status">${statusText}</div>
+        </div>
+        <div class="drop-zone" id="dz-${tag.id}" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '${tag.id}')">
+        </div>
+        <label class="tp-mand">
+          <input type="checkbox" ${tag.is_mandatory ? "checked" : ""} onchange="toggleMandatory('${tag.id}', this.checked)">
+          <span>คงไว้เสมอ</span>
+        </label>
+      `;
+
+      // Fill chips inside drop zone
+      const dz = card.querySelector(`#dz-${tag.id}`);
+      (tag.excel_keywords || []).forEach(kw => {
+        const isH = kw.toLowerCase() === "hold";
+        const chip = createChip(kw, "assigned", tag.id, isH);
+        dz.appendChild(chip);
+      });
+
+      grid.appendChild(card);
+    });
+
+    catGroup.appendChild(grid);
+    container.appendChild(catGroup);
+  }
+}
+
+// Drag and drop handlers
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  const dropTarget = e.currentTarget;
+  dropTarget.classList.add("drag-over");
+}
+
+function handleDragLeave(e) {
+  e.currentTarget.classList.remove("drag-over");
+}
+
+function handleDrop(e, targetId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove("drag-over");
+
+  if (!draggedItem) return;
+
+  const funcName = draggedItem.name;
+  const fromTagId = draggedItem.sourceTagId;
+
+  if (targetId === "pool") {
+    // Dropped into pool -> remove from source tag
+    if (fromTagId) {
+      removeFunctionFromTag(fromTagId, funcName);
+    }
+  } else {
+    // Dropped into a Word Test Point card
+    const targetTag = currentData.tags.find(t => t.id === targetId);
+    if (!targetTag) return;
+
+    if (!targetTag.excel_keywords) targetTag.excel_keywords = [];
+
+    // Avoid duplicate in same tag
+    if (!targetTag.excel_keywords.some(k => k.toLowerCase() === funcName.toLowerCase())) {
+      // If moving from another card, remove from that card first
+      if (fromTagId && fromTagId !== targetId) {
+        removeFunctionFromTag(fromTagId, funcName);
+      }
+      targetTag.excel_keywords.push(funcName);
+    }
+  }
+
+  renderApp();
+}
+
+function removeChip(event, tagId, funcName) {
+  event.stopPropagation();
+  removeFunctionFromTag(tagId, funcName);
+  renderApp();
+}
+
+function removeFunctionFromTag(tagId, funcName) {
+  const tag = currentData.tags.find(t => t.id === tagId);
+  if (tag && tag.excel_keywords) {
+    tag.excel_keywords = tag.excel_keywords.filter(k => k.toLowerCase() !== funcName.toLowerCase());
+  }
+}
+
+function toggleMandatory(tagId, isMand) {
+  const tag = currentData.tags.find(t => t.id === tagId);
+  if (tag) tag.is_mandatory = isMand;
+}
+
+function filterPool() {
+  renderPool();
+}
+
+function clearAllToPool() {
+  currentData.tags.forEach(t => {
+    t.excel_keywords = [];
+  });
+  renderApp();
+}
+
+function addHoldToAllEmpty() {
+  currentData.tags.forEach(t => {
+    if (!t.excel_keywords || t.excel_keywords.length === 0) {
+      t.excel_keywords = ["Hold"];
+    }
+  });
+  renderApp();
+}
+
+function saveMappings() {
+  const saveBtn = document.getElementById("save-btn");
+  saveBtn.innerText = "⏳ กำลังบันทึก...";
+  saveBtn.disabled = true;
+
+  sendToStreamlit({
+    action: "save_mappings",
+    protocolName: currentData.protocolName,
+    tags: currentData.tags
+  });
+
+  setTimeout(() => {
+    saveBtn.innerText = "✅ บันทึกสำเร็จแล้ว!";
+    setTimeout(() => {
+      saveBtn.innerText = "💾 บันทึกการจับคู่ Tag (Save to JSON)";
+      saveBtn.disabled = false;
+    }, 1500);
+  }, 400);
+}
+</script>
+
+</body>
+</html>
