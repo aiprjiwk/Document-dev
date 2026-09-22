@@ -9,6 +9,7 @@ import io
 import zipfile
 import os
 import importlib
+import datetime
 
 # Try to import zxingcpp (recommended as it has no external DLL requirements on Windows)
 try:
@@ -5453,12 +5454,28 @@ def render_operating_manual_page():
                                     else:
                                         st.error(d_msg)
 
-def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
+def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
     st.title("📋 IQOQDQ Qualification System")
     st.subheader(f"Equipment Validation & Qualification Protocol Workspace — **{sub_section}**")
     
     # Render direct view based on semi-sub menu selection
-    if sub_section == "🔧 IQ":
+    if "DQ" in sub_section:
+        st.markdown("### 📐 DQ — Design Qualification")
+        st.caption("Equipment design specification review, User Requirement Specification (URS), technical drawings, and design qualification protocol generation.")
+        
+        st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+        
+        with st.container(border=True):
+            st.markdown("### 🛠️ To be Dev. (To be Developed)")
+            st.markdown("""
+            This module is reserved for future Design Qualification (DQ) workspace enhancements.
+            
+            * **Module Purpose:** User Requirement Specification (URS), Functional Design Specification (FDS), technical drawings verification, and DQ Protocol Document Generation.
+            * **Development Status:** To be Developed by user.
+            """)
+            st.info("💡 **Notice:** All content in this section is currently set to To be Dev. and will be updated in a future release.")
+
+    elif "IQ" in sub_section:
         st.markdown("### 🔧 IQ — Installation Qualification")
         st.caption("Equipment installation inspection, utility connections, safety components, and format verification.")
         
@@ -5537,7 +5554,7 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                     
                     if sample_excel_bytes_inst:
                         st.download_button(
-                            label="📥 ดาวน์โหลดไฟล์ตัวอย่าง Excel (Download Project_XXXXX.xlsx)",
+                            label="📥 Download Sample Excel (Project_XXXXX.xlsx)",
                             data=sample_excel_bytes_inst,
                             file_name="Project_XXXXX.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -5564,7 +5581,7 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                         with open(word_tmpl_path_inst, "rb") as tf:
                             tmpl_bytes = tf.read()
                         st.download_button(
-                            label=f"📥 ดาวน์โหลดไฟล์แม่แบบปัจจุบัน (Download {selected_tmpl_inst})",
+                            label=f"📥 Download Current Master Template ({selected_tmpl_inst})",
                             data=tmpl_bytes,
                             file_name=selected_tmpl_inst,
                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -5855,8 +5872,11 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
             with col_word_cci:
                 st.markdown("##### 📄 2. Word Master Template")
                 tmpl_dir_cci = os.path.abspath(r"IQOQDQ/IQ_CCI")
-                tmpl_files_cci = [f for f in os.listdir(tmpl_dir_cci) if not f.startswith("~$") and f.lower().endswith(('.doc', '.docx'))] if os.path.exists(tmpl_dir_cci) else []
+                os.makedirs(tmpl_dir_cci, exist_ok=True)
+                
+                tmpl_files_cci = [f for f in os.listdir(tmpl_dir_cci) if not f.startswith("~$") and f.lower().endswith(('.doc', '.docx'))]
                 word_tmpl_path_cci = None
+                
                 if tmpl_files_cci:
                     default_tmpl_idx_cci = 0
                     for idx, fn in enumerate(tmpl_files_cci):
@@ -5866,13 +5886,36 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                     selected_tmpl_cci = st.selectbox("Select Word Master Template", tmpl_files_cci, index=default_tmpl_idx_cci, key="iq_cci_tmpl_sel")
                     word_tmpl_path_cci = os.path.abspath(os.path.join(tmpl_dir_cci, selected_tmpl_cci))
                     st.caption(f"📄 Master Template: `{selected_tmpl_cci}` *(from IQ_CCI)*")
-                else:
-                    uploaded_tmpl_cci = st.file_uploader("Upload Word Master Template (*.docx, *.doc)", type=["docx", "doc"], key="iq_cci_upload_word")
-                    if uploaded_tmpl_cci:
-                        temp_tmpl_p = os.path.abspath(os.path.join(tmpl_dir_cci, uploaded_tmpl_cci.name))
-                        with open(temp_tmpl_p, "wb") as f:
-                            f.write(uploaded_tmpl_cci.getvalue())
-                        word_tmpl_path_cci = temp_tmpl_p
+                    
+                    # 1. Download current active template
+                    if os.path.exists(word_tmpl_path_cci):
+                        with open(word_tmpl_path_cci, "rb") as tf:
+                            tmpl_bytes_cci = tf.read()
+                        is_doc_ext_cci = selected_tmpl_cci.lower().endswith('.doc')
+                        mime_cci = "application/msword" if is_doc_ext_cci else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        st.download_button(
+                            label=f"📥 Download Current Master Template ({selected_tmpl_cci})",
+                            data=tmpl_bytes_cci,
+                            file_name=selected_tmpl_cci,
+                            mime=mime_cci,
+                            key="iq_cci_dl_current_tmpl",
+                            use_container_width=True
+                        )
+                
+                # 2. Upload new template to IQ_CCI directory
+                uploaded_tmpl_cci = st.file_uploader(
+                    "📤 Upload New Master Template (*.docx, *.doc)",
+                    type=["docx", "doc"],
+                    key="iq_cci_upload_word",
+                    help="Upload a Word master template to save into IQ_CCI directory"
+                )
+                if uploaded_tmpl_cci is not None:
+                    temp_tmpl_p = os.path.abspath(os.path.join(tmpl_dir_cci, uploaded_tmpl_cci.name))
+                    with open(temp_tmpl_p, "wb") as f:
+                        f.write(uploaded_tmpl_cci.getvalue())
+                    word_tmpl_path_cci = temp_tmpl_p
+                    st.success(f"✅ Saved new template `{uploaded_tmpl_cci.name}` to IQ_CCI directory successfully!")
+                    st.rerun()
 
             st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
             
@@ -5989,18 +6032,82 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                     selected_tmpl = st.selectbox("Select Word Template (.doc / .docx)", tmpl_files, index=default_tmpl_idx, key="iq_fmt_tmpl_sel")
                     word_tmpl_path = os.path.abspath(os.path.join(tmpl_dir, selected_tmpl))
                     st.caption(f"📄 Master Template: `{selected_tmpl}` *(from IQ_Format)*")
-                else:
-                    uploaded_tmpl = st.file_uploader("Upload Word Template (*.doc, *.docx)", type=["doc", "docx"], key="iq_fmt_upload_word")
-                    if uploaded_tmpl:
-                        temp_tmpl_path = os.path.abspath(os.path.join(tmpl_dir, uploaded_tmpl.name))
-                        with open(temp_tmpl_path, "wb") as f:
-                            f.write(uploaded_tmpl.getvalue())
-                        word_tmpl_path = temp_tmpl_path
+                    
+                    # Download current active template
+                    if os.path.exists(word_tmpl_path):
+                        with open(word_tmpl_path, "rb") as tf:
+                            tmpl_bytes_fmt = tf.read()
+                        is_doc_ext_fmt = selected_tmpl.lower().endswith('.doc')
+                        mime_fmt = "application/msword" if is_doc_ext_fmt else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        st.download_button(
+                            label=f"📥 Download Current Master Template ({selected_tmpl})",
+                            data=tmpl_bytes_fmt,
+                            file_name=selected_tmpl,
+                            mime=mime_fmt,
+                            key="iq_fmt_dl_current_tmpl",
+                            use_container_width=True
+                        )
+
+                # Upload new template
+                uploaded_tmpl = st.file_uploader("📤 Upload New Master Template (*.docx, *.doc)", type=["doc", "docx"], key="iq_fmt_upload_word")
+                if uploaded_tmpl:
+                    temp_tmpl_path = os.path.abspath(os.path.join(tmpl_dir, uploaded_tmpl.name))
+                    with open(temp_tmpl_path, "wb") as f:
+                        f.write(uploaded_tmpl.getvalue())
+                    word_tmpl_path = temp_tmpl_path
+                    st.success(f"✅ Saved new template `{uploaded_tmpl.name}` to IQ_Format directory successfully!")
+                    st.rerun()
 
             st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
             
+            # 3. Pre-generation Content Review & Data Verification
+            st.markdown("##### 📝 3. Pre-download Content Preview & Data Verification")
+            st.caption("ตรวจสอบและแก้ไขข้อมูลเนื้อหา Format Parts ก่อนทำการสร้างและดาวน์โหลดเอกสาร Word")
+            
+            # Load Data Preview before downloading
+            parsed_df = None
+            fn_tags = []
+            if excel_input:
+                try:
+                    init_groups, parsed_df, fn_tags = iq_fmt_svc.parse_and_clean_format_excel(excel_input)
+                except Exception as parse_err:
+                    st.warning(f"⚠️ Unable to parse Excel preview: {str(parse_err)}")
+                    parsed_df = None
+                    fn_tags = []
+            
+            if parsed_df is not None and not parsed_df.empty:
+                st.markdown("<div style='background-color: #eef6ff; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #1e88e5; margin: 10px 0;'>", unsafe_allow_html=True)
+                st.markdown("💡 **Format Codes (Fn) Formatting Note:** หากรายการใดมี Format Code หลายตัว (เช่น `F2 F5 F6`) ระบบจะทำการจัดฟอร์แมตคั่นด้วยเครื่องหมายจุลภาคให้อัตโนมัติเป็น `F2, F5, F6` ก่อนนำเข้าสู่เอกสาร Word", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
+                
+                # Tags & Summary metrics before download
+                s_col1, s_col2, s_col3 = st.columns([1, 1, 2])
+                s_col1.metric("📂 Total Component Groups", f"{len(parsed_df['Category / Group'].unique())} Groups")
+                s_col2.metric("📋 Total Format Parts", f"{len(parsed_df)} Items")
+                with s_col3:
+                    st.markdown("**🏷️ Format Tags Identified:**")
+                    if fn_tags:
+                        tags_html = " ".join([f"<span style='background-color:#0d6efd; color:white; padding:3px 8px; border-radius:12px; font-size:12px; margin-right:4px; display:inline-block;'>{t}</span>" for t in fn_tags])
+                        st.markdown(tags_html, unsafe_allow_html=True)
+                    else:
+                        st.caption("No specific Fn tags found")
+                
+                with st.expander("🔍 Extracted & Grouped Format Parts Data (Data Editor / Preview)", expanded=True):
+                    edited_format_df = st.data_editor(
+                        parsed_df,
+                        use_container_width=True,
+                        hide_index=True,
+                        num_rows="dynamic",
+                        key="iq_fmt_data_editor"
+                    )
+            else:
+                edited_format_df = None
+                st.info("ℹ️ Upload or select an Excel Data Source to preview and verify format parts content.")
+            
+            st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+            
             # Action Button
-            btn_col1, btn_col2 = st.columns([1.2, 2])
+            btn_col1, btn_col2 = st.columns([1.5, 2])
             with btn_col1:
                 process_btn = st.button("⚡ Populate & Generate Word Document", type="primary", use_container_width=True, key="iq_fmt_process_btn")
                 
@@ -6008,27 +6115,29 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                 if not excel_input:
                     st.error("❌ Please select or upload an Excel data file first.")
                 else:
-                    with st.spinner("Opening original Word template, populating Table 4, and preparing download..."):
+                    with st.spinner("Opening original Word template, populating Table 4 with formatted Fn data, and preparing download..."):
                         try:
                             result = iq_fmt_svc.generate_iq_format_word(
                                 excel_source=excel_input,
-                                word_template_path=word_tmpl_path
+                                word_template_path=word_tmpl_path,
+                                edited_df=edited_format_df
                             )
                             st.session_state["iq_fmt_last_result"] = result
-                            st.success(f"🎉 **Word Document Ready!** Click the button below to download `{result['file_name']}` directly to your Downloads folder.")
+                            st.success(f"🎉 **Word Document Ready!** Generated `{result['file_name']}`. Review details and download below.")
                         except Exception as ex:
                             st.error(f"❌ Error generating document: {str(ex)}")
             
-            # Display Results if Available
+            # Display Generated Results & Download Button
             if "iq_fmt_last_result" in st.session_state and st.session_state["iq_fmt_last_result"]:
                 res = st.session_state["iq_fmt_last_result"]
                 
                 st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+                st.markdown("##### 📥 Ready for Download")
                 # Metrics Row
                 m_col1, m_col2, m_col3 = st.columns(3)
                 m_col1.metric("📂 Component Groups", f"{res['total_groups']} Groups")
                 m_col2.metric("📋 Format Items", f"{res['total_items']} Items")
-                m_col3.metric("📄 Ready for Download", res["file_name"])
+                m_col3.metric("📄 File Name", res["file_name"])
                 
                 # Download Button
                 is_doc = res["file_name"].lower().endswith(".doc")
@@ -6043,18 +6152,15 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                     key="iq_fmt_dl_btn",
                     use_container_width=True
                 )
-                
-                # Data Preview
-                with st.expander("👀 View Extracted & Grouped Format Parts Data", expanded=True):
-                    st.dataframe(res["preview_df"], use_container_width=True, hide_index=True)
+
+
         
-    elif sub_section == "⚡ OQ":
+    elif "OQ" in sub_section:
         st.markdown("### ⚡ OQ — Operational Qualification")
         st.caption("Operational test protocols, IO verification, safety interlocks, HMI checks, alarm limits, and shift register tracking.")
         
-        tab_oq_io, tab_oq_safe, tab_oq_hmi, tab_oq_alarm, tab_oq_shift = st.tabs([
+        tab_oq_io, tab_oq_hmi, tab_oq_alarm, tab_oq_shift = st.tabs([
             "📋 OQ IO List",
-            "🛡️ OQ Safety",
             "🖥️ OQ HMI",
             "🚨 OQ Alarm",
             "🔄 OQ Shift Register"
@@ -6118,6 +6224,7 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
             with col_word_io:
                 st.markdown("##### 📄 2. Word Master Template")
                 tmpl_dir_io = os.path.abspath(r"IQOQDQ/IO list")
+                os.makedirs(tmpl_dir_io, exist_ok=True)
                 tmpl_files_io = [f for f in os.listdir(tmpl_dir_io) if not f.startswith("~$") and f.lower().endswith(('.doc', '.docx'))] if os.path.exists(tmpl_dir_io) else []
                 word_tmpl_path_io = None
                 if tmpl_files_io:
@@ -6129,13 +6236,34 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                     selected_tmpl_io = st.selectbox("Select Word Master Template", tmpl_files_io, index=default_tmpl_idx_io, key="oq_io_tmpl_sel")
                     word_tmpl_path_io = os.path.abspath(os.path.join(tmpl_dir_io, selected_tmpl_io))
                     st.caption(f"📄 Master Template: `{selected_tmpl_io}` *(from IO list)*")
-                else:
-                    uploaded_tmpl_io = st.file_uploader("Upload Word Master Template (*.docx, *.doc)", type=["docx", "doc"], key="oq_io_upload_word")
-                    if uploaded_tmpl_io:
-                        temp_tmpl_p = os.path.abspath(os.path.join(tmpl_dir_io, uploaded_tmpl_io.name))
-                        with open(temp_tmpl_p, "wb") as f:
-                            f.write(uploaded_tmpl_io.getvalue())
-                        word_tmpl_path_io = temp_tmpl_p
+                    
+                    if os.path.exists(word_tmpl_path_io):
+                        with open(word_tmpl_path_io, "rb") as tf:
+                            tmpl_bytes_io = tf.read()
+                        is_doc_ext_io = selected_tmpl_io.lower().endswith('.doc')
+                        mime_io = "application/msword" if is_doc_ext_io else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        st.download_button(
+                            label=f"📥 Download Current Master Template ({selected_tmpl_io})",
+                            data=tmpl_bytes_io,
+                            file_name=selected_tmpl_io,
+                            mime=mime_io,
+                            key="oq_io_dl_current_tmpl",
+                            use_container_width=True
+                        )
+                
+                uploaded_tmpl_io = st.file_uploader(
+                    "📤 Upload New Master Template (*.docx, *.doc)",
+                    type=["docx", "doc"],
+                    key="oq_io_upload_word",
+                    help="Upload a Word master template to save into IO list directory"
+                )
+                if uploaded_tmpl_io is not None:
+                    temp_tmpl_p = os.path.abspath(os.path.join(tmpl_dir_io, uploaded_tmpl_io.name))
+                    with open(temp_tmpl_p, "wb") as f:
+                        f.write(uploaded_tmpl_io.getvalue())
+                    word_tmpl_path_io = temp_tmpl_p
+                    st.success(f"✅ Saved new template `{uploaded_tmpl_io.name}` to IO list directory successfully!")
+                    st.rerun()
 
             st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
             
@@ -6184,13 +6312,467 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                 with st.expander("👀 View Computed & Sorted IO List Records (Preview Data)", expanded=True):
                     st.dataframe(res_io["preview_df"], use_container_width=True, hide_index=True)
             
-        with tab_oq_safe:
-            st.markdown("#### 🛡️ OQ Safety Protocol Generator")
-            st.info("💡 **OQ Safety Workspace:** Ready for Safety circuit, emergency stop, and interlock test protocol automation.")
-            
+
         with tab_oq_hmi:
-            st.markdown("#### 🖥️ OQ HMI Protocol Generator")
-            st.info("💡 **OQ HMI Workspace:** Ready for HMI display, user access levels, and operator interface verification.")
+            import importlib
+            import backend.oq_hmi_service as oq_hmi_svc
+            try:
+                importlib.reload(oq_hmi_svc)
+            except Exception:
+                pass
+
+            tab_hmi_gen, tab_hmi_maint = st.tabs([
+                "⚡ OQ HMI Protocol Generator",
+                "⚙️ Machine Type & Template Maintenance"
+            ])
+
+            with tab_hmi_gen:
+                st.markdown("#### 🖥️ OQ HMI Protocol Generator (OCR Image System)")
+                st.caption("Automatically run Image OCR on screenshot images, match templates by Machine & Visu Type, insert page breaks, and replace `XXXX` placeholder under `3.3 Masks` in Word master template.")
+
+                # Configuration Row: Select Machine Type & Screen/Visu Type
+                cfg_hmi_col1, cfg_hmi_col2 = st.columns(2)
+                with cfg_hmi_col1:
+                    available_hmi_machines = oq_hmi_svc.get_available_hmi_machine_types()
+                    default_hmi_m_idx = available_hmi_machines.index("FP") if "FP" in available_hmi_machines else 0
+                    selected_hmi_machine = st.selectbox(
+                        "🏭 Select Machine Type",
+                        available_hmi_machines,
+                        index=default_hmi_m_idx,
+                        key="oq_hmi_machine_sel",
+                        help="Target machine type folder (e.g. FP, SC_SI, TZC, FC, TL, Standard)"
+                    )
+                with cfg_hmi_col2:
+                    hmi_screen_type = st.radio(
+                        "🖥️ Screen / Visu Type",
+                        ["🖥️ IPC (Industrial PC)", "📱 Magilis"],
+                        horizontal=True,
+                        key="oq_hmi_screen_type",
+                        help="Select Visu type"
+                    )
+
+                visu_clean = "Magilis" if "Magilis" in hmi_screen_type else "IPC"
+                if "Magilis" in hmi_screen_type:
+                    st.info("💡 **Magilis Visu Note:** Magilis visu template integration active. System maps IPC and Magilis screen layouts dynamically.")
+
+                st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+
+                col_img_hmi, col_tmpl_hmi = st.columns(2)
+
+                with col_img_hmi:
+                    st.markdown("##### 🖼️ 1. Insert Screenshots / Images")
+                    sample_img_dir = os.path.abspath(r"IQOQDQ/OQ_HMI/Screen short")
+                    sample_img_count = len([f for f in os.listdir(sample_img_dir) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]) if os.path.exists(sample_img_dir) else 0
+
+                    uploaded_imgs_hmi = st.file_uploader(
+                        "Upload Screenshot Images (*.jpg, *.png) or ZIP",
+                        type=["jpg", "jpeg", "png", "zip"],
+                        accept_multiple_files=True,
+                        key="oq_hmi_upload_images",
+                        help="Upload screenshot images or a ZIP archive containing HMI screen view images"
+                    )
+
+                    if uploaded_imgs_hmi:
+                        image_input_hmi = uploaded_imgs_hmi if len(uploaded_imgs_hmi) > 1 or not uploaded_imgs_hmi[0].name.endswith('.zip') else uploaded_imgs_hmi[0]
+                        st.caption(f"🖼️ Active Images: `{len(uploaded_imgs_hmi)} file(s) uploaded`")
+                    elif os.path.exists(sample_img_dir):
+                        image_input_hmi = sample_img_dir
+                        st.caption(f"💡 *Defaulting to sample folder:* `Screen short` ({sample_img_count} images)")
+                    else:
+                        image_input_hmi = None
+
+                with col_tmpl_hmi:
+                    st.markdown("##### 📄 2. Word Master Template")
+                    tmpl_dir_hmi = os.path.abspath(r"IQOQDQ/OQ_HMI")
+                    os.makedirs(tmpl_dir_hmi, exist_ok=True)
+                    tmpl_files_hmi = [f for f in os.listdir(tmpl_dir_hmi) if not f.startswith("~$") and f.lower().endswith(('.docx', '.docm', '.doc'))] if os.path.exists(tmpl_dir_hmi) else []
+
+                    word_tmpl_path_hmi = None
+                    if tmpl_files_hmi:
+                        default_tmpl_idx_hmi = 0
+                        for idx, fn in enumerate(tmpl_files_hmi):
+                            if "xxxx" in fn.lower():
+                                default_tmpl_idx_hmi = idx
+                                break
+                        selected_tmpl_hmi = st.selectbox("Select Word Master Template", tmpl_files_hmi, index=default_tmpl_idx_hmi, key="oq_hmi_tmpl_sel")
+                        word_tmpl_path_hmi = os.path.abspath(os.path.join(tmpl_dir_hmi, selected_tmpl_hmi))
+                        st.caption(f"📄 Master Template: `{selected_tmpl_hmi}` *(Target: Replacing XXXX under 3.3 Masks)*")
+                        
+                        if os.path.exists(word_tmpl_path_hmi):
+                            with open(word_tmpl_path_hmi, "rb") as tf:
+                                tmpl_bytes_hmi = tf.read()
+                            is_doc_ext_hmi = selected_tmpl_hmi.lower().endswith('.doc')
+                            mime_hmi = "application/msword" if is_doc_ext_hmi else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            st.download_button(
+                                label=f"📥 Download Current Master Template ({selected_tmpl_hmi})",
+                                data=tmpl_bytes_hmi,
+                                file_name=selected_tmpl_hmi,
+                                mime=mime_hmi,
+                                key="oq_hmi_dl_current_tmpl",
+                                use_container_width=True
+                            )
+
+                    uploaded_tmpl_hmi = st.file_uploader(
+                        "📤 Upload New Master Template (*.docx, *.docm, *.doc)",
+                        type=["docx", "docm", "doc"],
+                        key="oq_hmi_upload_word",
+                        help="Upload a Word master template to save into OQ_HMI directory"
+                    )
+                    if uploaded_tmpl_hmi is not None:
+                        temp_tmpl_p = os.path.abspath(os.path.join(tmpl_dir_hmi, uploaded_tmpl_hmi.name))
+                        with open(temp_tmpl_p, "wb") as f:
+                            f.write(uploaded_tmpl_hmi.getvalue())
+                        word_tmpl_path_hmi = temp_tmpl_p
+                        st.success(f"✅ Saved new template `{uploaded_tmpl_hmi.name}` to OQ_HMI directory successfully!")
+                        st.rerun()
+
+                excel_input_hmi = None
+
+                st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+
+                # Requirement 4 & 5 & 6: Interactive Existing Recheck Window & Screenshot Sequence Control
+                if image_input_hmi:
+                    eval_list = oq_hmi_svc.get_screenshot_images(image_input_hmi)
+                    eval_list_sorted = sorted(eval_list, key=lambda x: oq_hmi_svc.get_category_and_sort_key(x['name']))
+                    all_fnames = [img['name'] for img in eval_list_sorted]
+                    
+                    # Initialize or validate session state image order (Category 1 Operation first)
+                    if "oq_hmi_custom_image_order" not in st.session_state or set(st.session_state["oq_hmi_custom_image_order"]) != set(all_fnames):
+                        st.session_state["oq_hmi_custom_image_order"] = all_fnames.copy()
+
+                    # Window 1: Existing Recheck with Template Maintenance
+                    with st.expander("🖼️ 1. Insert Screenshots / Existing Recheck with Template", expanded=True):
+                        st.markdown("##### 🖼️ 1. Existing Recheck with Template Maintenance")
+                        st.caption(f"Evaluating uploaded screenshots against maintained template library for **{selected_hmi_machine} ({visu_clean})**...")
+
+                        try:
+                            if "oq_hmi_custom_image_order" not in st.session_state or not st.session_state["oq_hmi_custom_image_order"]:
+                                st.session_state["oq_hmi_custom_image_order"] = [img['name'] for img in sorted(eval_list, key=lambda x: oq_hmi_svc.get_category_and_sort_key(x['name']))]
+
+                            current_order = st.session_state["oq_hmi_custom_image_order"]
+
+                            eval_list_ordered = [next(img for img in eval_list if img['name'] == fn) for fn in current_order if any(img['name'] == fn for img in eval_list)]
+
+                            ocr_map_preview = []
+                            for img_info in eval_list_ordered:
+                                fn = img_info['name']
+                                ocr_res = oq_hmi_svc.perform_ocr_on_image(img_info)
+                                h_title = ocr_res.get('derived_title', fn)
+                                ocr_map_preview.append({'fname': fn, 'title': h_title})
+
+                            recheck_df, recheck_metrics = oq_hmi_svc.perform_existing_template_recheck(
+                                ocr_map_preview, machine_type=selected_hmi_machine, visu_type=visu_clean
+                            )
+
+                            rc_m1, rc_m2, rc_m3 = st.columns(3)
+                            rc_m1.metric("📋 Total Evaluated", f"{recheck_metrics['total_evaluated']} Images")
+                            rc_m2.metric("✅ Maintained & Matched", f"{recheck_metrics['maintained_count']} Screens")
+                            rc_m3.metric("⚠️ Unmaintained / Missing", f"{recheck_metrics['missing_maint_count']} Screens")
+
+                            st.dataframe(recheck_df, use_container_width=True, hide_index=True)
+                            if recheck_metrics['missing_maint_count'] > 0:
+                                st.warning(f"💡 **Maintenance Alert:** {recheck_metrics['missing_maint_count']} screen(s) are missing from the template library for `{selected_hmi_machine}`. Switch to the '⚙️ Machine Type & Template Maintenance' tab to add them.")
+                        except Exception as ex_rc:
+                            st.info("💡 Upload screenshots to run live Existing Recheck against Template Library.")
+
+                    # Window 2: Sequence Reordering via Excel Checklist Tool
+                    with st.expander("📤 2. นำเข้าไฟล์ Excel Checklist ลำดับใหม่ (Sequence Control)", expanded=True):
+                        st.markdown("##### 📤 2. นำเข้าไฟล์ Excel Checklist ลำดับใหม่")
+                        st.caption("💡 **วิธีใช้ Checklist Tool:** 1. กดดาวน์โหลดไฟล์ Excel (.xlsm) 2. เปิดไฟล์ ติ๊ก Checkbox เพื่อรับหมายเลขลำดับ (คอลัมน์ C) 3. อัปโหลดไฟล์กลับเพื่อจัดลำดับภาพสำหรับการ insert ในแม่แบบ Word")
+
+                        try:
+                            current_order = st.session_state.get("oq_hmi_custom_image_order", all_fnames)
+                            eval_list_ordered = [next(img for img in eval_list if img['name'] == fn) for fn in current_order if any(img['name'] == fn for img in eval_list)]
+                            ocr_map_preview = []
+                            for img_info in eval_list_ordered:
+                                fn = img_info['name']
+                                ocr_res = oq_hmi_svc.perform_ocr_on_image(img_info)
+                                h_title = ocr_res.get('derived_title', fn)
+                                ocr_map_preview.append({'fname': fn, 'title': h_title})
+
+                            xl_col1, xl_col2 = st.columns(2)
+                            
+                            with xl_col1:
+                                st.markdown("###### 📥 1. ดาวน์โหลดไฟล์ Excel Checklist Tool")
+                                export_rows = []
+                                for idx, fn in enumerate(current_order, start=1):
+                                    info = next((item for item in ocr_map_preview if item['fname'] == fn), {})
+                                    title = info.get('title', fn)
+                                    status_str = "N/A"
+                                    m = re.search(r'V\d{4}', fn)
+                                    fc_code = m.group(0) if m else "General"
+                                    export_rows.append({
+                                        'Checkbox': '',
+                                        'Select': '',
+                                        'ลำดับที่เลือก': '',
+                                        'File Name': fn,
+                                        'Function Code': fc_code,
+                                        'Header Title': title,
+                                        'Status': status_str
+                                    })
+                                
+                                xl_bytes, xl_fname, xl_mime = oq_hmi_svc.generate_checklist_xlsm(export_rows)
+
+                                st.download_button(
+                                    label=f"📥 ดาวน์โหลด Checklist Tool ({xl_fname})",
+                                    data=xl_bytes,
+                                    file_name=xl_fname,
+                                    mime=xl_mime,
+                                    use_container_width=True,
+                                    key="oq_hmi_btn_dl_seq_excel"
+                                )
+                                st.caption("✨ *ไฟล์ Excel มี Form Control Checkbox & VBA Macro สำหรับรันหมายเลข 1, 2, 3... n ตามลำดับการติ๊ก*")
+
+                            with xl_col2:
+                                st.markdown("###### 📤 2. นำเข้าไฟล์ Excel Checklist ลำดับใหม่")
+                                uploaded_seq_xl = st.file_uploader(
+                                    "อัปโหลดไฟล์ Excel Checklist ที่เลือกและติ๊กแล้ว (*.xlsm, *.xlsx, *.xls)",
+                                    type=["xlsm", "xlsx", "xls"],
+                                    key="oq_hmi_uploader_seq_excel"
+                                )
+                                if uploaded_seq_xl:
+                                    try:
+                                        xl_bytes = uploaded_seq_xl.getvalue()
+                                        final_xl_order, sel_count = oq_hmi_svc.parse_checklist_excel(io.BytesIO(xl_bytes), all_fnames)
+                                        if final_xl_order:
+                                            # Automatically update custom image order in session state without requiring confirm buttons
+                                            if st.session_state.get("oq_hmi_custom_image_order") != final_xl_order:
+                                                st.session_state["oq_hmi_custom_image_order"] = list(final_xl_order)
+                                                st.rerun()
+
+                                            st.success(f"📋 **ผลการอ่าน Checklist:** อ่านลำดับตามคอลัมน์ C สำเร็จ พบภาพที่เลือกไว้ `{sel_count}` ภาพ (พร้อมใช้งานเรียบร้อยแล้ว)")
+                                    except Exception as ex_xl:
+                                        st.error(f"❌ ไม่สามารถอ่านไฟล์ Excel ได้: {str(ex_xl)}")
+
+                            # Status Bar
+                            st.markdown("---")
+                            st.info("💡 **สถานะลำดับภาพ:** ระบบนำลำดับภาพตามหมายเลขใน คอลัมน์ C จากไฟล์ Excel มาใช้งานอัตโนมัติสำหรับการ Generate OQ HMI Word และ Audit Log")
+                        except Exception as ex_xl_outer:
+                            st.info("💡 Upload screenshots to manage sequence control via Excel Checklist.")
+
+                    # Window 3: Image Insertion Audit Log (Inserted vs Not Inserted)
+                    with st.expander("🖼️ 3. Image Insertion Audit Log (Inserted vs Not Inserted)", expanded=True):
+                        st.markdown("##### 🖼️ 3. Image Insertion Audit Log (Inserted vs Not Inserted)")
+                        st.caption("Detailed breakdown of screenshot image files evaluated, showing insertion status (Inserted vs Skipped vs Not Inserted).")
+
+                        try:
+                            if "oq_hmi_last_result" in st.session_state and st.session_state["oq_hmi_last_result"].get("preview_df") is not None:
+                                st.dataframe(st.session_state["oq_hmi_last_result"]["preview_df"], use_container_width=True, hide_index=True)
+                            elif 'recheck_df' in locals() and not recheck_df.empty:
+                                audit_records = []
+                                for idx, row in recheck_df.iterrows():
+                                    fn = row['Image File Name']
+                                    status_maint = str(row['Template Maintenance Status'])
+                                    t_title = row['Header / Screen Title']
+                                    
+                                    if "Maintained & Matched" in status_maint:
+                                        ins_status = "✅ Inserted"
+                                    elif "Skipped" in status_maint:
+                                        ins_status = "⚡ Skipped (Duplicate)"
+                                    else:
+                                        ins_status = "⚠️ Not Inserted"
+                                        
+                                    audit_records.append({
+                                        "No.": idx + 1,
+                                        "Image File Name": fn,
+                                        "Insertion Status": ins_status,
+                                        "Matched Screen / Protocol Section": t_title if ins_status != "⚠️ Not Inserted" else "N/A"
+                                    })
+                                audit_preview_df = pd.DataFrame(audit_records)
+                                st.dataframe(audit_preview_df, use_container_width=True, hide_index=True)
+                            else:
+                                st.info("💡 Upload screenshots to view live Image Insertion Audit Log.")
+                        except Exception as ex_audit:
+                            st.info("💡 Upload screenshots to view live Image Insertion Audit Log.")
+
+                # Action Button (Generate Word)
+                btn_hmi_col1, btn_hmi_col2 = st.columns([1.5, 2])
+                with btn_hmi_col1:
+                    process_btn_hmi = st.button("⚡ Generate OQ HMI Word", type="primary", use_container_width=True, key="oq_hmi_process_btn")
+
+                if process_btn_hmi:
+                    if not image_input_hmi:
+                        st.error("❌ Please select or upload screenshot images first.")
+                    else:
+                        with st.spinner(f"นำข้อมูลจาก 🔍 Existing Recheck & Sequence Control มาเปิดไฟล์ย่อยใน '{selected_hmi_machine}', แทรกรูปภาพ และประกอบเข้ากับแม่แบบ Word หลัก..."):
+                            try:
+                                # Ensure custom_order is derived from uploaded Excel sequence bytes if present
+                                uploaded_xl_file = st.session_state.get("oq_hmi_uploader_seq_excel")
+                                if uploaded_xl_file is not None:
+                                    try:
+                                        xl_bytes = uploaded_xl_file.getvalue()
+                                        xl_order, _ = oq_hmi_svc.parse_checklist_excel(io.BytesIO(xl_bytes), all_fnames)
+                                        if xl_order:
+                                            st.session_state["oq_hmi_custom_image_order"] = list(xl_order)
+                                    except Exception as ex_xl_gen:
+                                        print(f"Warning: Could not re-parse uploaded checklist Excel on generation: {ex_xl_gen}")
+
+                                custom_order = st.session_state.get("oq_hmi_custom_image_order", None)
+
+                                result_hmi = oq_hmi_svc.generate_oq_hmi_word(
+                                    excel_source=excel_input_hmi,
+                                    word_template_path=word_tmpl_path_hmi,
+                                    image_source=image_input_hmi,
+                                    machine_type=selected_hmi_machine,
+                                    visu_type=visu_clean,
+                                    custom_image_order=custom_order
+                                )
+                                st.session_state["oq_hmi_last_result"] = result_hmi
+                                st.success(f"🎉 **Image OCR & Generation Complete!** Successfully inserted {result_hmi['inserted_images_count']} / {result_hmi['total_images']} images into `{result_hmi['file_name']}`.")
+                                st.rerun()
+                            except Exception as ex:
+                                st.error(f"❌ Error during Image OCR processing: {str(ex)}")
+
+                # Display Results & Downloads
+                if "oq_hmi_last_result" in st.session_state and st.session_state["oq_hmi_last_result"]:
+                    res_hmi = st.session_state["oq_hmi_last_result"]
+
+                    st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+
+                    m1, m2, m3, m4 = st.columns(4)
+                    m1.metric("🖥️ Screen Views", f"{res_hmi['total_screens']} Screens")
+                    m2.metric("📋 Parameter Items", f"{res_hmi['total_parameters']} Items")
+                    m3.metric("🖼️ Inserted Images", f"{res_hmi['inserted_images_count']} / {res_hmi['total_images']}")
+
+                    dup_cnt = res_hmi.get('duplicate_images_count', 0)
+                    not_ins = res_hmi.get('not_inserted_images_count', 0)
+                    if dup_cnt > 0 and not_ins == 0:
+                        m4.metric("⚡ Skipped Duplicates", f"{dup_cnt} Images")
+                    else:
+                        m4.metric("⚠️ Uninserted Images", f"{not_ins} Images")
+
+                    dl_col1, dl_col2 = st.columns(2)
+
+                    with dl_col1:
+                        st.download_button(
+                            label=f"📥 Download Populated Word Master Template ({res_hmi['file_name']})",
+                            data=res_hmi["doc_bytes"],
+                            file_name=res_hmi["file_name"],
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            type="primary",
+                            key="oq_hmi_dl_word_btn",
+                            use_container_width=True,
+                            help="Download the completed OQ HMI Word document template populated with test data"
+                        )
+
+                    with dl_col2:
+                        st.download_button(
+                            label=f"📊 Download Image Insertion Audit Excel Report ({res_hmi['excel_audit_name']})",
+                            data=res_hmi["excel_audit_bytes"],
+                            file_name=res_hmi["excel_audit_name"],
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            type="secondary",
+                            key="oq_hmi_dl_excel_audit_btn",
+                            use_container_width=True,
+                            help="Download Excel report listing all screenshot image names and their insertion status (Inserted vs Not Inserted)"
+                        )
+
+                    st.markdown("##### 🖼️ Image Insertion Audit Log (Inserted vs Not Inserted)")
+                    st.caption("Detailed breakdown of screenshot image files evaluated, showing which images were inserted into the template and which were not.")
+                    st.dataframe(res_hmi["preview_df"], use_container_width=True, hide_index=True)
+
+            # Requirement 7: Tab 2 - Machine Type & Template Maintenance
+            with tab_hmi_maint:
+                st.markdown("#### ⚙️ Machine Type & Template Maintenance")
+                st.caption("Manage machine types, Word master templates, and maintain expected screen headers for each machine and Visu type (IPC / Magilis).")
+
+                maint_hmi_machines = oq_hmi_svc.get_available_hmi_machine_types()
+
+                # Header Bar
+                mt_col1, mt_col2, mt_col3 = st.columns([2, 1.2, 1.2])
+
+                with mt_col1:
+                    sel_hmi_maint_mach = st.selectbox(
+                        "🏭 Active Machine Type to Maintain",
+                        maint_hmi_machines,
+                        index=0 if maint_hmi_machines else None,
+                        key="oq_hmi_maint_active_mach"
+                    )
+
+                with mt_col2:
+                    st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                    with st.popover("➕ Add New Machine", use_container_width=True):
+                        st.markdown("##### ➕ Create New Machine Type")
+                        new_hmi_mach_name = st.text_input("Machine Type Code", placeholder="e.g. FP, TZC, FC, SC_SI", key="oq_hmi_new_mach_name")
+                        if st.button("Create & Initialize", type="primary", use_container_width=True, key="oq_hmi_btn_create_mach"):
+                            if not new_hmi_mach_name.strip():
+                                st.error("❌ Please enter a valid Machine Type code.")
+                            else:
+                                try:
+                                    created_m = oq_hmi_svc.create_hmi_machine_type(new_hmi_mach_name)
+                                    st.success(f"🎉 Machine Type `{created_m}` created successfully!")
+                                    st.rerun()
+                                except Exception as ex:
+                                    st.error(f"❌ Error: {str(ex)}")
+
+                with mt_col3:
+                    st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                    with st.popover("🗑️ Delete Machine", use_container_width=True):
+                        st.markdown(f"##### ⚠️ Delete Machine Type: `{sel_hmi_maint_mach}`")
+                        st.warning(f"This will delete template files and maintenance records for `{sel_hmi_maint_mach}`.")
+                        confirm_del_hmi_mach = st.checkbox(f"Yes, delete '{sel_hmi_maint_mach}'", key="oq_hmi_del_mach_chk")
+                        if st.button("Delete Machine Type", type="secondary", disabled=not confirm_del_hmi_mach, use_container_width=True, key="oq_hmi_btn_del_mach"):
+                            try:
+                                oq_hmi_svc.delete_hmi_machine_type(sel_hmi_maint_mach)
+                                st.success(f"🗑️ Machine Type `{sel_hmi_maint_mach}` deleted.")
+                                st.rerun()
+                            except Exception as ex:
+                                st.error(f"❌ Error: {str(ex)}")
+
+                st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+
+                # Visu Type selector for Maintenance
+                maint_visu_col, maint_btn_col = st.columns([2, 1])
+                with maint_visu_col:
+                    maint_selected_visu = st.radio(
+                        "🖥️ Visu Type to Maintain",
+                        ["IPC", "Magilis"],
+                        horizontal=True,
+                        key="oq_hmi_maint_visu_sel"
+                    )
+
+                with maint_btn_col:
+                    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+                    with st.popover("➕ Add Screen Record", use_container_width=True):
+                        st.markdown(f"##### ➕ Add Screen Definition ({sel_hmi_maint_mach} - {maint_selected_visu})")
+                        add_func_code = st.text_input("Function Code (Optional)", placeholder="e.g. V0300, V0980", key="hmi_add_fc")
+                        add_screen_name = st.text_input("Screen Name", placeholder="e.g. Tube filling - Process values", key="hmi_add_sn")
+                        add_tab_idx = st.number_input("Tab Index", min_value=0, max_value=20, value=1, key="hmi_add_ti")
+                        add_exp_header = st.text_input("Expected Header Title", placeholder=r"\Operation\Tube filling\Process values", key="hmi_add_eh")
+
+                        if st.button("Save Record", type="primary", use_container_width=True, key="hmi_btn_save_rec"):
+                            if not add_screen_name.strip() or not add_exp_header.strip():
+                                st.error("❌ Screen Name and Expected Header Title are required.")
+                            else:
+                                try:
+                                    oq_hmi_svc.add_hmi_maintenance_record(
+                                        sel_hmi_maint_mach, maint_selected_visu, add_func_code.strip(), add_screen_name.strip(), add_tab_idx, add_exp_header.strip()
+                                    )
+                                    st.success("🎉 Screen definition added!")
+                                    st.rerun()
+                                except Exception as ex:
+                                    st.error(f"❌ Error: {str(ex)}")
+
+                # Display Current Maintenance Records in SQLite
+                st.markdown(f"##### 📋 Maintained Screen Definitions for `{sel_hmi_maint_mach}` ({maint_selected_visu})")
+                maint_records_df = oq_hmi_svc.get_hmi_maintenance_records(sel_hmi_maint_mach, maint_selected_visu)
+
+                if maint_records_df.empty:
+                    st.info(f"💡 No maintenance records found for `{sel_hmi_maint_mach}` ({maint_selected_visu}). Use '➕ Add Screen Record' above to create records.")
+                else:
+                    st.dataframe(maint_records_df, use_container_width=True, hide_index=True)
+
+                    # Option to delete a record
+                    with st.expander("🗑️ Delete a Record", expanded=False):
+                        record_ids = maint_records_df['id'].tolist()
+                        sel_rec_id = st.selectbox("Select Record ID to Delete", record_ids, key="hmi_sel_del_rec_id")
+                        if st.button("Delete Selected Record", type="secondary", key="hmi_btn_del_rec"):
+                            try:
+                                oq_hmi_svc.delete_hmi_maintenance_record(sel_rec_id)
+                                st.success(f"🗑️ Record ID `{sel_rec_id}` deleted.")
+                                st.rerun()
+                            except Exception as ex:
+                                st.error(f"❌ Error: {str(ex)}")
             
         with tab_oq_alarm:
             import importlib
@@ -6274,6 +6856,7 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                 with col_word_alarm:
                     st.markdown("##### 📄 2. Word Master Template")
                     tmpl_dir_alarm = os.path.abspath(r"IQOQDQ/OQ Alarm")
+                    os.makedirs(tmpl_dir_alarm, exist_ok=True)
                     tmpl_files_alarm = [f for f in os.listdir(tmpl_dir_alarm) if not f.startswith("~$") and not f.startswith(".") and f.lower().endswith(('.doc', '.docx'))] if os.path.exists(tmpl_dir_alarm) else []
                     word_tmpl_path_alarm = None
                     if tmpl_files_alarm:
@@ -6285,13 +6868,34 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                         selected_tmpl_alarm = st.selectbox("Select Word Master Template", tmpl_files_alarm, index=default_tmpl_idx_alarm, key="oq_alarm_tmpl_sel")
                         word_tmpl_path_alarm = os.path.abspath(os.path.join(tmpl_dir_alarm, selected_tmpl_alarm))
                         st.caption(f"📄 Master Template: `{selected_tmpl_alarm}` *(from OQ Alarm)*")
-                    else:
-                        uploaded_tmpl_alarm = st.file_uploader("Upload Word Master Template (*.docx, *.doc)", type=["docx", "doc"], key="oq_alarm_upload_word")
-                        if uploaded_tmpl_alarm:
-                            temp_tmpl_p = os.path.abspath(os.path.join(tmpl_dir_alarm, uploaded_tmpl_alarm.name))
-                            with open(temp_tmpl_p, "wb") as f:
-                                f.write(uploaded_tmpl_alarm.getvalue())
-                            word_tmpl_path_alarm = temp_tmpl_p
+                        
+                        if os.path.exists(word_tmpl_path_alarm):
+                            with open(word_tmpl_path_alarm, "rb") as tf:
+                                tmpl_bytes_alarm = tf.read()
+                            is_doc_ext_alarm = selected_tmpl_alarm.lower().endswith('.doc')
+                            mime_alarm = "application/msword" if is_doc_ext_alarm else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            st.download_button(
+                                label=f"📥 Download Current Master Template ({selected_tmpl_alarm})",
+                                data=tmpl_bytes_alarm,
+                                file_name=selected_tmpl_alarm,
+                                mime=mime_alarm,
+                                key="oq_alarm_dl_current_tmpl",
+                                use_container_width=True
+                            )
+
+                    uploaded_tmpl_alarm = st.file_uploader(
+                        "📤 Upload New Master Template (*.docx, *.doc)",
+                        type=["docx", "doc"],
+                        key="oq_alarm_upload_word",
+                        help="Upload a Word master template to save into OQ Alarm directory"
+                    )
+                    if uploaded_tmpl_alarm is not None:
+                        temp_tmpl_p = os.path.abspath(os.path.join(tmpl_dir_alarm, uploaded_tmpl_alarm.name))
+                        with open(temp_tmpl_p, "wb") as f:
+                            f.write(uploaded_tmpl_alarm.getvalue())
+                        word_tmpl_path_alarm = temp_tmpl_p
+                        st.success(f"✅ Saved new template `{uploaded_tmpl_alarm.name}` to OQ Alarm directory successfully!")
+                        st.rerun()
 
                 st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
                 
@@ -6489,17 +7093,621 @@ def render_iqoqdq_page(sub_section: str = "🔧 IQ"):
                         st.info(f"💡 No template files found in `{sel_maint_mach}`. Use the uploader above to drop and save Word templates.")
             
         with tab_oq_shift:
-            st.markdown("#### 🔄 OQ Shift Register Protocol Generator")
-            st.info("💡 **OQ Shift Register Workspace:** Ready for reject tracking, shift register sequence, and sensor synchronization testing.")
+            import importlib
+            import backend.oq_shift_service as oq_shift_svc
+            try:
+                importlib.reload(oq_shift_svc)
+            except Exception:
+                pass
+            
+            tab_shift_gen, tab_shift_maint = st.tabs([
+                "⚡ Protocol Generator",
+                "⚙️ Machine Type & Template Maintenance"
+            ])
+            
+            with tab_shift_gen:
+                st.markdown("#### 🔄 OQ Shift Register Protocol Generator")
+                st.caption("Automatically match Shift Register Excel variables against machine-specific shift templates, assemble test protocols into the Word master template, and generate matched shift register summary reports.")
+                
+                # Machine & Screen Configuration Row
+                cfg_shift_col1, cfg_shift_col2 = st.columns(2)
+                with cfg_shift_col1:
+                    available_shift_machines = oq_shift_svc.get_available_machine_types()
+                    selected_shift_machine = None
+                    if available_shift_machines:
+                        default_shift_m_idx = 0
+                        selected_shift_machine = st.selectbox(
+                            "🏭 Select Machine Type",
+                            available_shift_machines,
+                            index=default_shift_m_idx,
+                            key="oq_shift_machine_sel",
+                            help="Target machine type folder in GMP_Shift Register"
+                        )
+                    else:
+                        st.selectbox(
+                            "🏭 Select Machine Type",
+                            ["No machine types found"],
+                            index=0,
+                            disabled=True,
+                            key="oq_shift_machine_sel_empty",
+                            help="No machine type directories found in GMP_Shift Register. Use Maintenance tab to add one."
+                        )
+                        st.caption("💡 *No machine types found in `IQOQDQ/OQ_Shift/GMP_Shift Register`. Switch to '⚙️ Machine Type & Template Maintenance' tab to create one.*")
+                with cfg_shift_col2:
+                    shift_screen_type = st.radio(
+                        "🖥️ Screen / Visu Type",
+                        ["🖥️ IPC (Industrial PC)", "📱 Magilis"],
+                        horizontal=True,
+                        key="oq_shift_screen_type",
+                        help="Magilis file formats will be integrated in future releases"
+                    )
+                
+                if "Magilis" in shift_screen_type:
+                    st.info("💡 **Magilis Visu Note:** Magilis file structure parser is scheduled for upcoming release. Current processing uses standard IPC shift register variable mapping.")
+                
+                st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+                
+                col_excel_shift, col_word_shift = st.columns(2)
+                
+                with col_excel_shift:
+                    st.markdown("##### 📊 1. Shift Register Information Excel")
+                    
+                    uploaded_excel_shift = st.file_uploader(
+                        "Upload Custom Shift Register Excel (*.xlsx, *.xls)",
+                        type=["xlsx", "xls"],
+                        key="oq_shift_upload_excel",
+                        help="Upload Excel containing shift register variables/codes in Column A"
+                    )
+                    
+                    shift_dir = os.path.abspath(r"IQOQDQ/OQ_Shift")
+                    os.makedirs(shift_dir, exist_ok=True)
+                    sample_shift_path = os.path.join(shift_dir, "5XXXX-ShiftRegisterInfo.xlsx")
+                    
+                    if uploaded_excel_shift is not None:
+                        excel_input_shift = uploaded_excel_shift
+                        st.caption(f"📂 Active File: `{uploaded_excel_shift.name}`")
+                    elif os.path.exists(sample_shift_path):
+                        excel_input_shift = sample_shift_path
+                        st.caption(f"💡 *Defaulting to sample:* `{os.path.basename(sample_shift_path)}`")
+                    else:
+                        excel_input_shift = None
+                    
+                    if os.path.exists(sample_shift_path):
+                        with open(sample_shift_path, "rb") as sf:
+                            sample_shift_bytes = sf.read()
+                        st.download_button(
+                            label=f"📥 Download Sample Excel ({os.path.basename(sample_shift_path)})",
+                            data=sample_shift_bytes,
+                            file_name=os.path.basename(sample_shift_path),
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key="oq_shift_dl_sample_excel",
+                            use_container_width=True
+                        )
+                
+                with col_word_shift:
+                    st.markdown("##### 📄 2. Word Master Template")
+                    tmpl_dir_shift = os.path.abspath(r"IQOQDQ/OQ_Shift")
+                    os.makedirs(tmpl_dir_shift, exist_ok=True)
+                    tmpl_files_shift = [f for f in os.listdir(tmpl_dir_shift) if not f.startswith("~$") and not f.startswith(".") and f.lower().endswith(('.doc', '.docx'))] if os.path.exists(tmpl_dir_shift) else []
+                    word_tmpl_path_shift = None
+                    if tmpl_files_shift:
+                        default_tmpl_idx_shift = 0
+                        for idx, fn in enumerate(tmpl_files_shift):
+                            if "11_oq_shift" in fn.lower() or "shift" in fn.lower():
+                                default_tmpl_idx_shift = idx
+                                break
+                        selected_tmpl_shift = st.selectbox("Select Word Master Template", tmpl_files_shift, index=default_tmpl_idx_shift, key="oq_shift_tmpl_sel")
+                        word_tmpl_path_shift = os.path.abspath(os.path.join(tmpl_dir_shift, selected_tmpl_shift))
+                        st.caption(f"📄 Master Template: `{selected_tmpl_shift}` *(from OQ_Shift)*")
+                        
+                        if os.path.exists(word_tmpl_path_shift):
+                            with open(word_tmpl_path_shift, "rb") as tf:
+                                tmpl_bytes_shift = tf.read()
+                            is_doc_ext_shift = selected_tmpl_shift.lower().endswith('.doc')
+                            mime_shift = "application/msword" if is_doc_ext_shift else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            st.download_button(
+                                label=f"📥 Download Current Master Template ({selected_tmpl_shift})",
+                                data=tmpl_bytes_shift,
+                                file_name=selected_tmpl_shift,
+                                mime=mime_shift,
+                                key="oq_shift_dl_current_tmpl",
+                                use_container_width=True
+                            )
+
+                    uploaded_tmpl_shift = st.file_uploader(
+                        "📤 Upload New Master Template (*.docx, *.doc)",
+                        type=["docx", "doc"],
+                        key="oq_shift_upload_word",
+                        help="Upload a Word master template to save into OQ_Shift directory"
+                    )
+                    if uploaded_tmpl_shift is not None:
+                        temp_tmpl_p = os.path.abspath(os.path.join(tmpl_dir_shift, uploaded_tmpl_shift.name))
+                        with open(temp_tmpl_p, "wb") as f:
+                            f.write(uploaded_tmpl_shift.getvalue())
+                        word_tmpl_path_shift = temp_tmpl_p
+                        st.success(f"✅ Saved new template `{uploaded_tmpl_shift.name}` to OQ_Shift directory successfully!")
+                        st.rerun()
+
+                st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+                
+                # Action Button
+                btn_gen_shift1, btn_gen_shift2 = st.columns([1.2, 2])
+                with btn_gen_shift1:
+                    process_btn_shift = st.button("⚡ Populate & Generate OQ Shift Register Word Document", type="primary", use_container_width=True, key="oq_shift_process_btn")
+                
+                if process_btn_shift:
+                    if not excel_input_shift:
+                        st.error("❌ Please select or upload a Shift Register Excel file.")
+                    else:
+                        with st.spinner(f"Matching shift register variables against '{selected_shift_machine}' library and assembling Section 3 test protocols..."):
+                            try:
+                                result_shift = oq_shift_svc.generate_oq_shift_word(
+                                    excel_source=excel_input_shift,
+                                    machine_type=selected_shift_machine,
+                                    word_template_path=word_tmpl_path_shift
+                                )
+                                st.session_state["oq_shift_last_result"] = result_shift
+                                st.success(f"🎉 **Word Document Ready!** Successfully matched {result_shift['total_matched']} shift items and assembled `{result_shift['file_name']}`.")
+                            except Exception as ex:
+                                st.error(f"❌ Error generating OQ Shift Register document: {str(ex)}")
+                
+                # Display Results
+                if "oq_shift_last_result" in st.session_state and st.session_state["oq_shift_last_result"]:
+                    res_shift = st.session_state["oq_shift_last_result"]
+                    
+                    st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+                    m1, m2, m3, m4 = st.columns(4)
+                    m1.metric("📋 Total Scanned", f"{res_shift['total_scanned']} Variables")
+                    m2.metric("✅ Matched Items", f"{res_shift['total_matched']} Items")
+                    skipped_count = res_shift['total_scanned'] - res_shift['total_matched']
+                    m3.metric("⏭️ Skipped / Not Found", f"{skipped_count} Rows")
+                    m4.metric("🏷️ Machine Type", res_shift.get('machine_type', selected_shift_machine))
+                    
+                    # Dual Download Buttons
+                    dl_col1, dl_col2 = st.columns(2)
+                    with dl_col1:
+                        st.download_button(
+                            label=f"📥 Download Word Protocol ({res_shift['file_name']})",
+                            data=res_shift["doc_bytes"],
+                            file_name=res_shift["file_name"],
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            type="primary",
+                            key="oq_shift_dl_doc_btn",
+                            use_container_width=True
+                        )
+                    with dl_col2:
+                        st.download_button(
+                            label=f"📊 Download Matched Shift Register Summary (Excel)",
+                            data=res_shift["summary_excel_bytes"],
+                            file_name=res_shift["summary_excel_name"],
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key="oq_shift_dl_excel_btn",
+                            use_container_width=True
+                        )
+                    
+                    # Interactive Previews
+                    prev_tab1, prev_tab2 = st.tabs([
+                        f"✅ Matched Items ({res_shift['total_matched']})",
+                        f"🔍 All Scanned Rows ({res_shift['total_scanned']})"
+                    ])
+                    with prev_tab1:
+                        if not res_shift["matched_df"].empty:
+                            st.dataframe(res_shift["matched_df"], use_container_width=True, hide_index=True)
+                        else:
+                            st.warning("No matched shift register items found.")
+                    with prev_tab2:
+                        if not res_shift["full_df"].empty:
+                            st.dataframe(res_shift["full_df"], use_container_width=True, hide_index=True)
+            
+            with tab_shift_maint:
+                st.markdown("#### ⚙️ Machine Type & Shift Register Template Library Maintenance")
+                st.caption("Create new Machine Types, drop / upload Word shift templates (*.docx, *.doc), and delete obsolete files to keep each machine library up-to-date.")
+                
+                maint_shift_machines = oq_shift_svc.get_available_machine_types()
+                
+                # Machine Type Management Header Bar
+                maint_top_col1, maint_top_col2, maint_top_col3 = st.columns([2, 1.2, 1.2])
+                
+                with maint_top_col1:
+                    if maint_shift_machines:
+                        sel_shift_maint_mach = st.selectbox(
+                            "🏭 Active Machine Type to Maintain",
+                            maint_shift_machines,
+                            index=0,
+                            key="oq_shift_maint_active_mach"
+                        )
+                    else:
+                        sel_shift_maint_mach = None
+                        st.selectbox(
+                            "🏭 Active Machine Type to Maintain",
+                            ["No machine types created"],
+                            index=0,
+                            disabled=True,
+                            key="oq_shift_maint_active_mach_empty"
+                        )
+                
+                with maint_top_col2:
+                    st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                    with st.popover("➕ Add New Machine", use_container_width=True):
+                        st.markdown("##### ➕ Create New Machine Type")
+                        new_shift_mach_input = st.text_input("Machine Type Code", placeholder="e.g. FP, SC_SI, TZC, FC, TL", key="oq_shift_new_mach_name")
+                        if st.button("Create & Initialize", type="primary", use_container_width=True, key="oq_shift_btn_create_mach"):
+                            if not new_shift_mach_input.strip():
+                                st.error("❌ Please enter a valid Machine Type name.")
+                            else:
+                                try:
+                                    created_name = oq_shift_svc.create_machine_type(new_shift_mach_input)
+                                    st.success(f"🎉 Machine Type `{created_name}` created and initialized successfully!")
+                                    st.rerun()
+                                except Exception as ex:
+                                    st.error(f"❌ Error creating machine type: {str(ex)}")
+                
+                with maint_top_col3:
+                    st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                    with st.popover("🗑️ Delete Machine", use_container_width=True):
+                        st.markdown(f"##### ⚠️ Delete Machine Type: `{sel_shift_maint_mach}`")
+                        st.warning(f"This will delete all template files and cache for `{sel_shift_maint_mach}`.")
+                        confirm_del_shift_mach = st.checkbox(f"Yes, delete '{sel_shift_maint_mach}'", key="oq_shift_del_mach_chk")
+                        if st.button("Delete Machine Type", type="secondary", disabled=not confirm_del_shift_mach, use_container_width=True, key="oq_shift_btn_del_mach"):
+                            try:
+                                oq_shift_svc.delete_machine_type(sel_shift_maint_mach)
+                                st.success(f"🗑️ Machine Type `{sel_shift_maint_mach}` has been deleted.")
+                                st.rerun()
+                            except Exception as ex:
+                                st.error(f"❌ Error deleting machine type: {str(ex)}")
+                
+                st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+                
+                if sel_shift_maint_mach:
+                    # Upload / Dropzone Card
+                    st.markdown(f"##### 📤 Drop / Upload Word Templates to `{sel_shift_maint_mach}`")
+                    maint_shift_upload_files = st.file_uploader(
+                        f"Drop or Select Word Files (*.docx, *.doc) for {sel_shift_maint_mach}",
+                        type=["docx", "doc"],
+                        accept_multiple_files=True,
+                        key="oq_shift_maint_upload_dropzone",
+                        help="Upload test templates (e.g. SR_*.doc, MX_*.docx)"
+                    )
+                    
+                    if maint_shift_upload_files:
+                        up_c1, up_c2 = st.columns([1.5, 2])
+                        with up_c1:
+                            if st.button(f"💾 Save & Sync {len(maint_shift_upload_files)} File(s) into {sel_shift_maint_mach}", type="primary", use_container_width=True, key="oq_shift_btn_save_uploaded_files"):
+                                with st.spinner(f"Saving and synchronizing template files for {sel_shift_maint_mach}..."):
+                                    saved = oq_shift_svc.upload_machine_files(sel_shift_maint_mach, maint_shift_upload_files)
+                                    st.success(f"🎉 Successfully saved and synchronized {len(saved)} file(s) into `{sel_shift_maint_mach}`!")
+                                    st.rerun()
+                    
+                    st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+                    
+                    # File Table and Metrics
+                    df_maint_shift_files = oq_shift_svc.list_machine_files_detailed(sel_shift_maint_mach)
+                    
+                    f_m1, f_m2, f_m3 = st.columns(3)
+                    f_m1.metric("📂 Total Templates", f"{len(df_maint_shift_files)} Files")
+                    tot_kb = df_maint_shift_files["Size (KB)"].sum() if not df_maint_shift_files.empty else 0
+                    f_m2.metric("💾 Total Library Size", f"{tot_kb:.1f} KB")
+                    f_m3.metric("🏷️ Selected Machine", sel_shift_maint_mach)
+                    
+                    st.markdown(f"##### 📋 Existing Template Files in `{sel_shift_maint_mach}`")
+                    if not df_maint_shift_files.empty:
+                        st.dataframe(df_maint_shift_files, use_container_width=True, hide_index=True)
+                        
+                        # File Management Actions
+                        f_act_c1, f_act_c2 = st.columns(2)
+                        
+                        with f_act_c1:
+                            st.markdown("###### 🗑️ Delete Template File(s)")
+                            shift_files_to_remove = st.multiselect(
+                                "Select file(s) to remove from library",
+                                df_maint_shift_files["Filename"].tolist(),
+                                key="oq_shift_maint_remove_sel",
+                                help="Select one or more files to delete"
+                            )
+                            if shift_files_to_remove:
+                                if st.button(f"🗑️ Delete {len(shift_files_to_remove)} Selected File(s)", type="secondary", key="oq_shift_maint_btn_remove_files"):
+                                    deleted_list = oq_shift_svc.delete_machine_files(sel_shift_maint_mach, shift_files_to_remove)
+                                    st.success(f"🗑️ Successfully deleted {len(deleted_list)} file(s).")
+                                    st.rerun()
+                        
+                        with f_act_c2:
+                            st.markdown("###### 📥 Download Template File")
+                            shift_file_to_inspect = st.selectbox(
+                                "Select file to download & inspect",
+                                df_maint_shift_files["Filename"].tolist(),
+                                key="oq_shift_maint_inspect_sel"
+                            )
+                            if shift_file_to_inspect:
+                                inspect_bytes = oq_shift_svc.get_machine_file_bytes(sel_shift_maint_mach, shift_file_to_inspect)
+                                if inspect_bytes:
+                                    is_doc_ext = shift_file_to_inspect.lower().endswith('.doc')
+                                    mime_ext = "application/msword" if is_doc_ext else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                    st.download_button(
+                                        label=f"📥 Download `{shift_file_to_inspect}`",
+                                        data=inspect_bytes,
+                                        file_name=shift_file_to_inspect,
+                                        mime=mime_ext,
+                                        key="oq_shift_maint_btn_dl_single",
+                                        use_container_width=True
+                                    )
+                    else:
+                        st.info(f"💡 No template files found in `{sel_shift_maint_mach}`. Use the uploader above to drop and save Word templates.")
+        
+    elif "Rename" in sub_section or "Tag" in sub_section:
+        st.markdown("### 🏷️ Rename Tag & Custom Document Properties Tool")
+        st.caption("Batch update Custom Document Properties (Copyright, Version, Machine, Order, Baunummer), Document History dates, and automated file renaming.")
+        
+        import backend.rename_tag_service as rename_tag_svc
+        try:
+            rename_tag_svc = importlib.reload(rename_tag_svc)
+        except Exception:
+            pass
+
+        # Step 1: Input Word Files
+        st.markdown("##### 📁 1. Target Word Document File(s) Location & Selection")
+        st.caption("Insert a folder location path or upload Word (.docx, .doc) files to update properties, Document History dates, and file names.")
+        
+        rt_source_mode = st.radio(
+            "Select Target File Source Mode:",
+            ["📂 Folder Location Path (Insert Path / Select Files)", "📤 Upload Word Files Directly"],
+            horizontal=True,
+            key="rt_source_mode_radio"
+        )
+        
+        selected_files_to_process = []
+        if "Folder Location" in rt_source_mode:
+            loc_col1, loc_col2 = st.columns([3, 1])
+            with loc_col1:
+                target_folder_path = st.text_input(
+                    "Insert Target Folder Location Path:",
+                    value=r"IQOQDQ",
+                    key="rt_target_folder_input",
+                    help="Enter relative path (e.g. IQOQDQ, IQOQDQ/IQ_CCI) or absolute path (e.g. C:\\Users\\...\\IQOQDQ)"
+                )
+            with loc_col2:
+                st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                recursive_search = st.checkbox("Include Subfolders", value=True, key="rt_recursive_chk")
+            
+            ws_files = rename_tag_svc.get_workspace_word_files(target_folder_path, recursive_search)
+            
+            if ws_files:
+                st.success(f"📁 Found `{len(ws_files)}` Word document file(s) in location: `{os.path.abspath(target_folder_path)}`")
+                
+                ws_file_options = {f["rel_path"]: f for f in ws_files}
+                all_keys = list(ws_file_options.keys())
+                
+                # Action Buttons: Select All / Clear All
+                btn_sel_col1, btn_sel_col2, _ = st.columns([1, 1, 3])
+                if btn_sel_col1.button("✅ Select All", key="rt_btn_select_all", use_container_width=True):
+                    st.session_state["rt_ws_multiselect"] = all_keys
+                    st.rerun()
+                if btn_sel_col2.button("🧹 Clear All", key="rt_btn_clear_all", use_container_width=True):
+                    st.session_state["rt_ws_multiselect"] = []
+                    st.rerun()
+
+                selected_ws_paths = st.multiselect(
+                    "Select Target Word File(s) from Location:",
+                    all_keys,
+                    default=all_keys,
+                    key="rt_ws_multiselect"
+                )
+                
+                for rel_p in selected_ws_paths:
+                    if rel_p in ws_file_options:
+                        finfo = ws_file_options[rel_p]
+                        if os.path.exists(finfo["full_path"]):
+                            with open(finfo["full_path"], "rb") as rf:
+                                selected_files_to_process.append({
+                                    "filename": finfo["filename"],
+                                    "bytes": rf.read(),
+                                    "source_path": finfo["full_path"]
+                                })
+                st.caption(f"✅ Selected `{len(selected_files_to_process)}` file(s) from location for processing.")
+            else:
+                abs_p = os.path.abspath(target_folder_path) if target_folder_path else "N/A"
+                st.warning(f"⚠️ Location path `{target_folder_path}` (`{abs_p}`) does not exist or contains no Word (.docx, .doc) documents.")
+        else:
+            uploaded_word_files = st.file_uploader(
+                "Upload Target Word Files (*.docx, *.doc)",
+                type=["docx", "doc"],
+                accept_multiple_files=True,
+                key="rename_tag_file_uploader",
+                help="Insert one or multiple Word document files to update properties and file names"
+            )
+            if uploaded_word_files:
+                for uf in uploaded_word_files:
+                    selected_files_to_process.append({
+                        "filename": uf.name,
+                        "bytes": uf.getvalue(),
+                        "source_path": None
+                    })
+                st.caption(f"✅ Loaded `{len(uploaded_word_files)}` file(s) for processing.")
+
+        st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+
+        # Step 2: 7 Data Input Fields
+        st.markdown("##### 📝 2. Enter Document Properties & Date (7 Input Fields)")
+        st.caption("Fill in the 6 Custom Document Properties and the 7th Date parameter to update across all files.")
+
+        default_today_str = datetime.datetime.now().strftime("%d-%b-%y")
+
+        col_p1, col_p2, col_p3 = st.columns(3)
+        with col_p1:
+            val_copyright = st.text_input(
+                "1. Copyright",
+                value="© Copyright by IWK (Thailand) Limited 2026",
+                key="rt_val_copyright",
+                help="Custom property 'Copyright'"
+            )
+            val_order = st.text_input(
+                "4. Order (Order No.)",
+                value="56021",
+                key="rt_val_order",
+                help="Custom property 'Order' & replaces XXXXX in filenames"
+            )
+
+        with col_p2:
+            val_version = st.text_input(
+                "2. Version",
+                value="01",
+                key="rt_val_version",
+                help="Custom property 'Version'"
+            )
+            val_baunummer = st.text_input(
+                "5. Baunummer",
+                value="XXX",
+                key="rt_val_baunummer",
+                help="Custom property 'Baunummer'"
+            )
+
+        with col_p3:
+            val_machine = st.text_input(
+                "3. Machine",
+                value="IWK XX",
+                key="rt_val_machine",
+                help="Custom property 'Machine'"
+            )
+            val_bezeichnung = st.text_input(
+                "6. Bezeichnung",
+                value="Cartoning machine, Tube filling machine, Filling platform",
+                key="rt_val_bezeichnung",
+                help="Custom property 'Bezeichnung'"
+            )
+
+        val_date = st.text_input(
+            "7. Date (Document History & Filename)",
+            value=default_today_str,
+            key="rt_val_date",
+            help="Input 7: Date format (e.g. 22-Sep-26). Replaces DD-MMM-YYYY in Document History and date in filename."
+        )
+
+        # Compute ISO date & doc date preview
+        iso_date_preview, doc_date_preview = rename_tag_svc.parse_user_date(val_date)
+        st.caption(f"🗓️ **Parsed Date Preview:** Document History Date: `{doc_date_preview}` | Filename Date (ISO): `{iso_date_preview}`")
+
+        st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+
+        # Step 3: Filename Renaming Preview
+        st.markdown("##### 🔍 3. Filename & Renaming Preview")
+        if selected_files_to_process:
+            preview_rows = []
+            for fitem in selected_files_to_process:
+                new_fn = rename_tag_svc.compute_renamed_filename(fitem["filename"], val_order, iso_date_preview)
+                preview_rows.append({
+                    "Original File Name": fitem["filename"],
+                    "Renamed File Name": new_fn,
+                    "Order Tag": val_order,
+                    "Date Tag (Document History)": doc_date_preview,
+                    "Date Tag (Filename)": iso_date_preview
+                })
+            st.dataframe(pd.DataFrame(preview_rows), use_container_width=True, hide_index=True)
+        else:
+            st.info("💡 Please select or upload at least one Word file to preview renaming.")
+
+        st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+
+        # Step 4: Action Button Process
+        col_proc1, col_proc2 = st.columns([1.5, 2])
+        with col_proc1:
+            btn_process_rt = st.button("⚡ Process & Update Word Files", type="primary", use_container_width=True, key="rt_process_btn")
+
+        if btn_process_rt:
+            if not selected_files_to_process:
+                st.error("❌ Please insert or select at least one Word file.")
+            elif not val_order:
+                st.error("❌ Please enter the Order number.")
+            else:
+                with st.spinner("Updating Custom Properties, Document History text, and renaming files..."):
+                    results_list = []
+                    for fitem in selected_files_to_process:
+                        res = rename_tag_svc.process_single_docx(
+                            docx_bytes=fitem["bytes"],
+                            orig_filename=fitem["filename"],
+                            copyright_val=val_copyright,
+                            version_val=val_version,
+                            machine_val=val_machine,
+                            order_val=val_order,
+                            baunummer_val=val_baunummer,
+                            date_val=val_date,
+                            bezeichnung_val=val_bezeichnung
+                        )
+                        res["source_path"] = fitem["source_path"]
+                        results_list.append(res)
+
+                    st.session_state["rename_tag_last_results"] = results_list
+                    st.success(f"🎉 **Successfully Processed {len(results_list)} File(s)!** Custom Document Properties and File Names updated.")
+
+        # Step 5: Save & Download Results
+        if "rename_tag_last_results" in st.session_state and st.session_state["rename_tag_last_results"]:
+            res_items = st.session_state["rename_tag_last_results"]
+            st.markdown("##### 📥 5. Processed Files & Download")
+
+            can_overwrite = any(item.get("source_path") for item in res_items)
+            if can_overwrite:
+                if st.button("💾 Overwrite Workspace Files Directly (บันทึกทับไฟล์เดิมในดิสก์)", type="secondary", key="rt_overwrite_disk_btn"):
+                    overwritten_count = 0
+                    for item in res_items:
+                        src_p = item.get("source_path")
+                        if src_p and os.path.exists(src_p):
+                            target_dir = os.path.dirname(src_p)
+                            new_path = os.path.join(target_dir, item["new_filename"])
+                            with open(new_path, "wb") as out_f:
+                                out_f.write(item["processed_bytes"])
+                            if new_path != src_p and os.path.exists(src_p):
+                                try:
+                                    os.remove(src_p)
+                                except Exception:
+                                    pass
+                            overwritten_count += 1
+                    st.toast(f"✅ บันทึกทับไฟล์สำเร็จเรียบร้อย {overwritten_count} ไฟล์!", icon="💾")
+                    st.rerun()
+
+            if len(res_items) > 1:
+                zip_io = io.BytesIO()
+                with zipfile.ZipFile(zip_io, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+                    for item in res_items:
+                        zf.writestr(item["new_filename"], item["processed_bytes"])
+                zip_io.seek(0)
+
+                st.download_button(
+                    label=f"📦 Download All Processed Files as ZIP ({len(res_items)} Files)",
+                    data=zip_io.getvalue(),
+                    file_name=f"{val_order}_Processed_Word_Files.zip",
+                    mime="application/zip",
+                    type="primary",
+                    key="rt_dl_zip_btn",
+                    use_container_width=True
+                )
+                st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+
+            for idx, item in enumerate(res_items):
+                col_res1, col_res2 = st.columns([3, 2])
+                with col_res1:
+                    st.markdown(f"📄 **Original:** `{item['original_filename']}` → **New:** `{item['new_filename']}`")
+                with col_res2:
+                    st.download_button(
+                        label=f"📥 Download {item['new_filename']}",
+                        data=item["processed_bytes"],
+                        file_name=item["new_filename"],
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        key=f"rt_dl_single_{idx}",
+                        use_container_width=True
+                    )
         
     else:
-        tab_iq, tab_oq = st.tabs(["🔧 IQ", "⚡ OQ"])
+        tab_dq, tab_iq, tab_oq, tab_rt = st.tabs(["📐 DQ", "🔧 IQ", "⚡ OQ", "🏷️ Rename tag"])
+        with tab_dq:
+            st.markdown("### 📐 DQ — Design Qualification")
+            st.info("💡 Ready for DQ steps.")
         with tab_iq:
             st.markdown("### 🔧 IQ — Installation Qualification")
             st.info("💡 Ready for IQ steps.")
         with tab_oq:
             st.markdown("### ⚡ OQ — Operational Qualification")
             st.info("💡 Ready for OQ steps.")
+        with tab_rt:
+            st.markdown("### 🏷️ Rename Tag")
+            st.info("💡 Ready for Rename tag steps.")
 
 
 
@@ -6988,23 +8196,9 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    # 1. Base options for all roles
-    sidebar_options = ["Dashboard", "Document Tool Center", "Data Extraction"]
-    sidebar_icons = ["house", "folder2-open", "search"]
-    
-    # 2. Add department and master options
-    if user_role in ["admin_master", "admin_department"]:
-        sidebar_options.extend(["Reports", "Workflow"])
-        sidebar_icons.extend(["graph-up", "gear"])
-        
-    if user_role == "admin_master":
-        sidebar_options.append("User Management")
-        sidebar_icons.append("people")
-        sidebar_options.append("Administration")
-        sidebar_icons.append("shield-lock")
-        
-    sidebar_options.append("Recycle Bin")
-    sidebar_icons.append("trash")
+    # Sidebar menu options (User Authorization bypassed, all tools unlocked)
+    sidebar_options = ["Dashboard", "Document Tool Center", "Data Extraction", "Reports", "Workflow", "Administration", "Recycle Bin"]
+    sidebar_icons = ["house", "folder2-open", "search", "graph-up", "gear", "shield-lock", "trash"]
 
     with st.sidebar:
         page = option_menu(
@@ -7023,13 +8217,8 @@ def main():
         
         selected_tool = None
         if page == "Document Tool Center":
-            # Filter tools for operator_department
-            if user_role == "operator_department":
-                dtc_tools = ["OCR & AI (from QC)", "Calibration Certificate", "Fault Assistance", "Machine Configuration System", "IQOQDQ"]
-                dtc_icons = ["robot", "patch-check", "wrench", "gear", "clipboard-check"]
-            else:
-                dtc_tools = ["OCR & AI (from QC)", "Advanced OCR Adjustment", "IWK Certificate", "ETK Verification", "Calibration Certificate", "Fault Assistance", "Machine Configuration System", "IQOQDQ"]
-                dtc_icons = ["robot", "stars", "award", "check2-all", "patch-check", "wrench", "gear", "clipboard-check"]
+            dtc_tools = ["OCR & AI (from QC)", "Advanced OCR Adjustment", "IWK Certificate", "ETK Verification", "Calibration Certificate", "Fault Assistance", "Machine Configuration System", "IQOQDQ"]
+            dtc_icons = ["robot", "stars", "award", "check2-all", "patch-check", "wrench", "gear", "clipboard-check"]
                 
             st.markdown("<hr style='margin: 10px 0; border-color: #1e3a5f;'>", unsafe_allow_html=True)
             selected_tool = option_menu(
@@ -7076,8 +8265,8 @@ def main():
                 """, unsafe_allow_html=True)
                 selected_iqoqdq_sub = option_menu(
                     menu_title=None,
-                    options=["🔧 IQ", "⚡ OQ"],
-                    icons=["wrench", "lightning-charge"],
+                    options=["📐 DQ", "🔧 IQ", "⚡ OQ", "🏷️ Rename tag"],
+                    icons=None,
                     menu_icon="cast",
                     default_index=0,
                     key="iqoqdq_semi_submenu_nav",
@@ -7106,17 +8295,17 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # Page Routing & Protection
+    # Page Routing & Protection (All pages unlocked)
     if page == "Dashboard":
         render_home_page()
     elif page == "Document Tool Center":
         if selected_tool == "OCR & AI (from QC)":
             render_ocr_certificate_page()
-        elif selected_tool == "Advanced OCR Adjustment" and user_role in ["admin_master", "admin_department"]:
+        elif selected_tool == "Advanced OCR Adjustment":
             render_advanced_ocr_adjustment_page()
-        elif selected_tool == "IWK Certificate" and user_role in ["admin_master", "admin_department"]:
+        elif selected_tool == "IWK Certificate":
             render_iwk_certificate_page()
-        elif selected_tool == "ETK Verification" and user_role in ["admin_master", "admin_department"]:
+        elif selected_tool == "ETK Verification":
             render_etk_verification_page()
         elif selected_tool == "Calibration Certificate":
             sub_mod = selected_calib_sub or "📜 Calibration Processing"
@@ -7131,26 +8320,16 @@ def main():
         elif selected_tool in ["Machine Configuration System", "Operating Manual"]:
             render_operating_manual_page()
         elif selected_tool == "IQOQDQ":
-            render_iqoqdq_page(sub_section=selected_iqoqdq_sub or "🔧 IQ")
+            render_iqoqdq_page(sub_section=selected_iqoqdq_sub or "📐 DQ")
         elif selected_tool:
             st.title(f"🛠️ {selected_tool}")
             st.info(f"You have selected the **{selected_tool}** from the Document Tool Center. Development for this tool is in progress.")
         else:
             render_placeholder_page(page)
-    elif page == "Data Extraction":
+    elif page in ["Data Extraction", "Reports", "Workflow", "Administration", "Recycle Bin"]:
         render_placeholder_page(page)
-    elif page == "Reports" and user_role in ["admin_master", "admin_department"]:
-        render_placeholder_page(page)
-    elif page == "Workflow" and user_role in ["admin_master", "admin_department"]:
-        render_placeholder_page(page)
-    elif page == "Administration" and user_role == "admin_master":
-        render_placeholder_page(page)
-    elif page == "Recycle Bin":
-        render_placeholder_page(page)
-    elif page == "User Management" and user_role == "admin_master":
-        render_user_management_page()
     else:
-        st.error("🚫 Access Denied: You do not have permission to view this section.")
+        render_placeholder_page(page)
 
 if __name__ == "__main__":
     main()

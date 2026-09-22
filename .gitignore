@@ -29,6 +29,12 @@ Thumbs.db
 [Dd]esktop.ini
 .DS_Store
 
+# MS Office Temporary Files
+~$*
+
+# Agent scratch directory
+scratch/
+
 # IDE / Editor files
 .vscode/
 .idea/

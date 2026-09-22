@@ -1,6 +1,6 @@
 # 📚 คู่มือและสรุปกลไกการทำงานอย่างละเอียด: Document Tool Center (App Team System)
 
-เอกสารฉบับนี้สรุปโครงสร้าง สถาปัตยกรรม และกลไกการทำงานอย่างละเอียดของทุกโมดูลใน **Document Tool Center** โดยเน้นเป็นพิเศษที่ระบบ **📜 Calibration Certificate (ระบบจัดการและประมวลผลใบรับรองการสอบเทียบ)**
+เอกสารฉบับนี้สรุปโครงสร้าง สถาปัตยกรรม และกลไกการทำงานอย่างละเอียดของทุกโมดูลใน **Document Tool Center** รวมถึงระบบ **📜 Calibration Certificate**, ชุดประมวลผล **📋 IQOQDQ Qualification Suite** และเครื่องมือ **🏷️ Rename Tag Tool**
 
 ---
 
@@ -17,7 +17,11 @@
 5. [🔍 ETK Verification](#5--etk-verification)
 6. [🔧 Fault Assistance Suite](#6--fault-assistance-suite)
 7. [📘 Machine Configuration System & Operating Manual](#7--machine-configuration-system--operating-manual)
-8. [📋 IQOQDQ Qualification Suite](#8--iqoqdq-qualification-suite)
+8. [📋 IQOQDQ Qualification Suite (ระบบสร้างเอกสารรับรองคุณภาพเครื่องจักร)](#8--iqoqdq-qualification-suite)
+   - 8.1 📐 DQ — Design Qualification Workspace
+   - 8.2 🔧 IQ — Installation Qualification Workspace (IQ Installation, IQ CCI, IQ Format)
+   - 8.3 ⚡ OQ — Operational Qualification Workspace (OQ IO List, OQ HMI, OQ Alarm, OQ Shift Register)
+9. [🏷️ Rename Tag & Custom Document Properties Tool](#9--rename-tag--custom-document-properties-tool)
 
 ---
 
@@ -148,14 +152,74 @@
 ---
 
 ## 8. 📋 IQOQDQ Qualification Suite
-* **วัตถุประสงค์**: สร้างและตรวจสอบเอกสารรับรองคุณภาพเครื่องจักร (Qualification System)
-* **กลไกการทำงานย่อย 5 ส่วน**:
-  1. **🔧 IQ (Installation Qualification)**: ตรวจสอบการติดตั้งอุปกรณ์ โครงสร้าง และระบบไฟฟ้า
-  2. **⚡ OQ Alarm (Operational Qualification)**: ตรวจสอบระบบเตือนภัยและ Safety Interlocks
-  3. **🔌 OQ I/O**: ตรวจสอบสัญญาณ Digital/Analog Input และ Output
-  4. **📐 IQ Format**: ตรวจสอบขนาดชิ้นงาน ฟอร์แมตบรรจุภัณฑ์ และพารามิเตอร์
-  5. **🛡️ IQ CCI**: ตรวจสอบระบบ Container Closure Integrity
-  สร้างเอกสารบันทึกการตรวจสอบและ Checklist สรุปผลการอนุมัติแบบมาตรฐาน
+
+ระบบสร้างและบริหารจัดการเอกสารรับรองคุณภาพเครื่องจักร (Qualification System) แบ่งตามระยะ Qualification (DQ, IQ, OQ) พร้อมรองรับการดาวน์โหลดและอัปโหลดแม่แบบ Word Master Template ภาษาอังกฤษในทุกโมดูล:
+
+### 8.1 📐 DQ — Design Qualification Workspace
+* **วัตถุประสงค์**: พื้นที่ทำงานสำหรับสร้างและจัดการเอกสารรับรองการออกแบบเครื่องจักร (Design Qualification Protocol & Report)
+* **การจัดการแม่แบบ**: จัดเก็บไฟล์แม่แบบ Word ภายใต้โฟลเดอร์ `IQOQDQ/DQ_Design/` พร้อมปุ่มดาวน์โหลดและอัปโหลดแม่แบบใหม่
+
+### 8.2 🔧 IQ — Installation Qualification Workspace
+ประกอบด้วย 3 โมดูลย่อยหลักสำหรับประมวลผลการติดตั้งเครื่องจักร:
+1. **🔧 IQ Installation Protocol Generator**:
+   - อ่านข้อมูลจากไฟล์ Excel Parts List (`IQOQDQ/IQ_Installation/`)
+   - กรองและเติมข้อมูลชิ้นส่วนลงใน Table 5 ของไฟล์แม่แบบ Word `02_iq_installation`
+2. **🛡️ IQ CCI (Control Components & Instruments)**:
+   - อ่านข้อมูลจาก Sheet ที่ขึ้นต้นด้วย `IQOQ list*` (Columns B, F, H) ในไฟล์ Excel Parts List
+   - ประมวลผลและเติมข้อมูลอุปกรณ์ควบคุมลงใน Table 6 ของไฟล์แม่แบบ Word `05_iq_control` (`IQOQDQ/IQ_CCI/`)
+3. **📦 IQ Format Parts Protocol Generator**:
+   - ประมวลผลข้อมูล BOM จากไฟล์ Excel (`EXPORT_*.XLSX`)
+   - กรองแถว/คอลัมน์ จัดกลุ่มตาม Component Designation และเติมลงในไฟล์แม่แบบ Word (`IQOQDQ/IQ_Format/`)
+
+### 8.3 ⚡ OQ — Operational Qualification Workspace
+ประกอบด้วย 4 โมดูลย่อยสำหรับประมวลผลการสอบเทียบและทดสอบการทำงานของเครื่องจักร:
+1. **📋 OQ IO List Protocol Generator**:
+   - ถอดรหัส ELCAD IO List Excel (`IQOQDQ/IO list/`)
+   - กรองค่าว่าง เรียงลำดับตาม Column E (Cross Reference) คำนวณสูตร Address / Description / Page / Test
+   - เติมข้อมูลจุด IO ทั้งหมดลงใน Table 5 ของไฟล์แม่แบบ Word `03_oq_io`
+2. **🖥️ OQ HMI Protocol Generator (OCR Image System)**:
+   - **Interactive Existing Recheck & Sequence Control**: สแกนภาพจับคู่กับคลัง Expected Header Titles ประจำรุ่นเครื่องจักร (เช่น `FP`, `SC 5`) และประเภท Visu (`IPC` / `Magilis`)
+   - **Excel Checklist Tool**: ส่งออกไฟล์ `.xlsm` พร้อม VBA Macro และ Checkbox ให้ผู้ใช้รันลำดับ 1, 2, 3... ก่อนอัปโหลดกลับเพื่อจัดลำดับภาพ
+   - **Word Document Population**: ประมวลผล Image OCR แทรกรูปภาพและขึ้นหน้าใหม่ (Page Break) อัตโนมัติ เพื่อแทนที่ข้อความมาร์กเกอร์ `XXXX` ใต้หัวข้อ `3.3 Masks` ในไฟล์แม่แบบ Word `XXXXX_04_OQ_HMI` (`IQOQDQ/OQ_HMI/`)
+   - **Audit Report Export**: สร้างรายงานสรุป Excel ตรวจสอบการแทรกภาพ (Inserted vs Not Inserted)
+3. **🚨 OQ Alarm Protocol Generator**:
+   - อ่านตัวแปร Alarm จากไฟล์ Excel (เช่น `5XXXX-AlarmInfo.xlsx`)
+   - ค้นหาและจับคู่แม่แบบแบบทดสอบ Alarm (`MX_*`) ในคลังประจำเครื่องจักร (`IQOQDQ/OQ Alarm/GMP_Alarme/{Machine_Type}/EN/`)
+   - ประกอบตารางทดสอบ Alarm และตารางลงนาม Performer Sign-off ลงใน Section 3 ของไฟล์แม่แบบ Word `XXXXX_10_OQ_Alarms`
+   - สร้างไฟล์รายงานสรุป Matched Alarms Excel อัตโนมัติ
+4. **🔄 OQ Shift Register Protocol Generator**:
+   - อ่านตัวแปร Shift Register จากไฟล์ Excel (เช่น `5XXXX-ShiftRegisterInfo.xlsx`)
+   - ค้นหาและจับคู่แม่แบบ Shift Register ในคลังประจำเครื่องจักร (`IQOQDQ/OQ_Shift/GMP_Shift Register/{Machine_Type}/EN/`)
+   - ประกอบตารางทดสอบ Shift Register และตารางลงนาม Performer Sign-off ลงใน Section 3 ของไฟล์แม่แบบ Word `XXXXX_11_OQ_Shift Register`
+   - สร้างไฟล์รายงานสรุป Matched Shift Register Excel อัตโนมัติ
+
+*หมายเหตุ: ทุกโมดูลย่อยใน IQOQDQ มาพร้อมแท็บ **⚙️ Machine Type & Template Maintenance** สำหรับสร้าง/ลบเครื่องจักร อัปโหลด และจัดการไฟล์แม่แบบในคลังอย่างสะดวก*
 
 ---
-*เอกสารนี้สร้างขึ้นโดยอัตโนมัติสำหรับระบบ IWK Document Portal*
+
+## 9. 🏷️ Rename Tag & Custom Document Properties Tool
+
+* **วัตถุประสงค์**: เครื่องมือประมวลผลไฟล์เอกสาร Word (`.docx`, `.doc`) แบบกลุ่ม (Batch Processing) เพื่ออัปเดตข้อมูล Custom Document Properties, วันที่ในตารางประวัติเอกสาร และเปลี่ยนชื่อไฟล์ตามมาตรฐานองค์กร IWK
+* **ขั้นตอนและกลไกการทำงานอย่างละเอียด**:
+  1. **Batch Custom Document Properties Writeback**:
+     - สแกนองค์ประกอบ XML ใน `docProps/custom.xml` ของไฟล์เอกสาร Word
+     - เขียนอัปเดต 6 Custom Properties สำคัญ ได้แก่:
+       - `Copyright`: ค่าเริ่มต้น `© Copyright by IWK (Thailand) Limited 2026`
+       - `Version`: ค่าเริ่มต้น `0.1`
+       - `Machine`: ค่าเริ่มต้น `IWK XX`
+       - `Order`: รหัสคำสั่งซื้อ 5 หลัก (เช่น `56021`)
+       - `Baunummer`: หมายเลขเครื่อง (เช่น `56021`)
+       - `Bezeichnung`: ชื่อประเภทเอกสาร Qualification Protocol
+  2. **Document History Table Date Synchronization**:
+     - สแกนตารางประวัติการแก้ไขเอกสาร (Document History Table) ภายในไฟล์ Word
+     - แปลงและอัปเดตวันที่ทั้งหมดให้อยู่ในฟอร์แมตมาตรฐาน `DD-MMM-YYYY` (เช่น `02-Jan-2025`)
+  3. **DOCPROPERTY Dynamic XML Field Update**:
+     - เปิดใช้งานสวิตช์ `<w:updateFields w:val="true"/>` ใน `word/settings.xml` เพื่อสั่งให้ Word อัปเดตฟิลด์อัตโนมัติเมื่อเปิดไฟล์
+     - สแกนและอัปเดตข้อความในแท็ก `<w:t>` สำหรับทุกฟิลด์ `DOCPROPERTY` ที่ใช้อ้างอิงใน Header, Footer, Table และ Paragraphs ทั้งหมด
+  4. **Standardized Automated File Renaming**:
+     - เปลี่ยนชื่อไฟล์เอกสาร Word อัตโนมัติ โดยแทนที่สัญลักษณ์มาร์กเกอร์ `XXXXX` ด้วย Order No. 5 หลัก และปรับรูปแบบวันที่เป็น ISO Date `YYYY-MM-DD`
+  5. **ZIP Package Export**:
+     - รวบรวมไฟล์ Word ที่ได้รับการอัปเดตข้อมูลและเปลี่ยนชื่อเรียบร้อยแล้วทั้งหมด แพ็กเกจเป็นไฟล์ ZIP ดาวน์โหลดในคราวเดียว
+
+---
+*เอกสารนี้ได้รับการอัปเดตล่าสุดสำหรับระบบ IWK Document Portal*

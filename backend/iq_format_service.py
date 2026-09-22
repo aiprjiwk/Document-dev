@@ -27,6 +27,22 @@ def clean_quantity(raw_qty):
             s = s[:-2]
         return s if s and s != 'nan' else '1'
 
+def format_fn_codes(fmt_str):
+    """
+    Formats format codes (Funktion Zeile1).
+    If multiple Fn codes are present (e.g. 'F2 F5 F6' or 'F3 F7 F8'),
+    adds comma separators so it becomes 'F2, F5, F6', 'F3, F7, F8', etc.
+    """
+    if pd.isna(fmt_str) or not fmt_str:
+        return ''
+    s = str(fmt_str).strip()
+    f_codes = re.findall(r'F\d+', s, flags=re.IGNORECASE)
+    if len(f_codes) > 1:
+        return ", ".join(code.upper() for code in f_codes)
+    elif len(f_codes) == 1 and s.upper() == f_codes[0].upper():
+        return f_codes[0].upper()
+    return s
+
 def parse_and_clean_format_excel(excel_source):
     """
     Parses Excel BOM and applies the 4 required rules:
@@ -35,6 +51,7 @@ def parse_and_clean_format_excel(excel_source):
     3. Skip header row.
     4. Exclude rows where Format Code (Col D / Funktion Zeile1) is blank.
     5. Clean Quantity (remove decimal places like 16.0 -> 16).
+    6. Format multiple Fn codes with commas (e.g. F2 F5 F6 -> F2, F5, F6).
     """
     if isinstance(excel_source, (str, os.PathLike)):
         df = pd.read_excel(excel_source, header=None)
@@ -52,11 +69,17 @@ def parse_and_clean_format_excel(excel_source):
 
     groups = {}
     flat_records = []
+    all_fn_tags = set()
     
     item_counter = 1
     for idx, r in valid_rows.iterrows():
         desc = str(r[1]).strip() if pd.notna(r[1]) else 'Unknown'
-        fmt = str(r[3]).strip() if pd.notna(r[3]) else ''
+        fmt_raw = str(r[3]).strip() if pd.notna(r[3]) else ''
+        fmt = format_fn_codes(fmt_raw)
+        
+        for tag in re.findall(r'F\d+', fmt, flags=re.IGNORECASE):
+            all_fn_tags.add(tag.upper())
+            
         raw_qty = r[17] if len(r) > 17 else '1'
         qty = clean_quantity(raw_qty)
             
@@ -69,26 +92,56 @@ def parse_and_clean_format_excel(excel_source):
             'Category / Group': desc,
             'Designation': desc,
             'Used for Format': fmt,
-            'Quantity (PC)': qty
+            'Quantity (PCS)': qty
         })
         item_counter += 1
 
     preview_df = pd.DataFrame(flat_records)
-    return groups, preview_df
+    fn_tags_sorted = sorted(list(all_fn_tags), key=lambda x: int(re.sub(r'\D', '', x)) if re.sub(r'\D', '', x).isdigit() else 999)
+    return groups, preview_df, fn_tags_sorted
 
 def generate_iq_format_word(
     excel_source,
     word_template_path=None,
     word_template_source=None,
+    edited_df=None,
+    metadata=None,
     **kwargs
 ):
     """
     Directly opens the Master Word template (.doc) from IQ_Format directory,
-    modifies Table 4 only, updates Quantity (Set) -> Quantity (PC), formats columns to exact widths,
+    modifies Table 4 only, updates Quantity (Set) -> Quantity (PCS), formats columns to exact widths,
     formats quantities as integers without decimals, preserves all original template metadata,
     and generates the file in memory for direct download.
     """
-    groups, preview_df = parse_and_clean_format_excel(excel_source)
+    if edited_df is not None and not edited_df.empty:
+        groups = {}
+        flat_records = []
+        item_counter = 1
+        all_fn_tags = set()
+        for idx, row in edited_df.iterrows():
+            desc = str(row.get('Designation', row.get('Category / Group', 'Unknown'))).strip()
+            fmt_raw = str(row.get('Used for Format', '')).strip()
+            fmt = format_fn_codes(fmt_raw)
+            for tag in re.findall(r'F\d+', fmt, flags=re.IGNORECASE):
+                all_fn_tags.add(tag.upper())
+            qty = clean_quantity(row.get('Quantity (PCS)', row.get('Quantity (PC)', '1')))
+            if desc not in groups:
+                groups[desc] = []
+            groups[desc].append((desc, fmt, qty))
+            flat_records.append({
+                'Item No.': f'{item_counter}.',
+                'Category / Group': desc,
+                'Designation': desc,
+                'Used for Format': fmt,
+                'Quantity (PCS)': qty
+            })
+            item_counter += 1
+        preview_df = pd.DataFrame(flat_records)
+        fn_tags_sorted = sorted(list(all_fn_tags), key=lambda x: int(re.sub(r'\D', '', x)) if re.sub(r'\D', '', x).isdigit() else 999)
+    else:
+        groups, preview_df, fn_tags_sorted = parse_and_clean_format_excel(excel_source)
+
     if not groups:
         raise ValueError('No valid format parts found in Excel file. Please ensure Funktion Zeile1 (Col D) contains format data.')
 
@@ -132,18 +185,28 @@ def generate_iq_format_word(
 
         tbl = doc.Tables(4)
 
-        # Update Quantity header from (Set) to (PC)
+        # Set table header rows to repeat across page breaks
+        try:
+            tbl.Rows(1).HeadingFormat = -1
+            tbl.Rows(2).HeadingFormat = -1
+        except Exception:
+            pass
+
+        # Update Quantity header to Quantity\r(PCS)
         for i in range(1, min(tbl.Range.Cells.Count + 1, 9)):
             try:
                 c = tbl.Range.Cells(i)
-                if 'set' in c.Range.Text.lower():
-                    c.Range.Text = "Quantity\r(PC)"
+                text_lower = c.Range.Text.lower()
+                if 'set' in text_lower or 'pc' in text_lower:
+                    c.Range.Text = "Quantity\r(PCS)"
                     c.Range.Font.Name = "Arial"
                     c.Range.Font.Size = 9
                     c.Range.Font.Bold = 1
                     c.Range.ParagraphFormat.Alignment = 1 # Center
             except Exception:
                 pass
+
+
 
         # Clear existing sample rows from row 3 onwards
         if tbl.Rows.Count >= 3 or tbl.Range.Cells.Count > 8:
@@ -245,5 +308,7 @@ def generate_iq_format_word(
         'file_name': download_file_name,
         'doc_bytes': doc_bytes,
         'preview_df': preview_df,
-        'groups': groups
+        'groups': groups,
+        'fn_tags': fn_tags_sorted,
+        'metadata': metadata or {}
     }
