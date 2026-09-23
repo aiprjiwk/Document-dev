@@ -169,6 +169,97 @@ def delete_hmi_machine_type(machine_name: str):
     conn.commit()
     conn.close()
 
+def list_hmi_machine_files_detailed(machine_type: str) -> pd.DataFrame:
+    """
+    Returns a pandas DataFrame of all template files in IQOQDQ/OQ_HMI/Machine type/{machine_type}/.
+    Columns: Filename, Size (KB), Format, Last Modified
+    """
+    clean_mach = machine_type.strip() if machine_type else "Standard"
+    src_dir = os.path.join(MACHINE_LIB_DIR, clean_mach)
+    
+    if not os.path.exists(src_dir):
+        return pd.DataFrame(columns=["Filename", "Size (KB)", "Format", "Last Modified"])
+        
+    records = []
+    for f in sorted(os.listdir(src_dir)):
+        if f.startswith('.') or f.startswith('~$'):
+            continue
+        fp = os.path.join(src_dir, f)
+        if not os.path.isfile(fp):
+            continue
+            
+        sz = os.path.getsize(fp) / 1024.0
+        mtime = datetime.datetime.fromtimestamp(os.path.getmtime(fp)).strftime('%Y-%m-%d %H:%M:%S')
+        ext = os.path.splitext(f)[1].lower()
+        
+        records.append({
+            "Filename": f,
+            "Size (KB)": round(sz, 1),
+            "Format": ext.replace('.', '').upper(),
+            "Last Modified": mtime
+        })
+        
+    return pd.DataFrame(records)
+
+def upload_hmi_machine_files(machine_type: str, uploaded_files) -> list[str]:
+    """
+    Saves uploaded files (.doc, .docx) into IQOQDQ/OQ_HMI/Machine type/{machine_type}/.
+    """
+    clean_mach = machine_type.strip() if machine_type else "Standard"
+    src_dir = os.path.join(MACHINE_LIB_DIR, clean_mach)
+    os.makedirs(src_dir, exist_ok=True)
+    
+    saved_files = []
+    for uf in uploaded_files:
+        fn = getattr(uf, 'name', None) or (uf[0] if isinstance(uf, (tuple, list)) else None)
+        if not fn:
+            continue
+            
+        content = uf.getvalue() if hasattr(uf, 'getvalue') else (uf.read() if hasattr(uf, 'read') else (uf[1] if isinstance(uf, (tuple, list)) else None))
+        if content is None:
+            continue
+            
+        if not fn.lower().endswith(('.doc', '.docx', '.docm', '.txt')):
+            continue
+            
+        target_src = os.path.join(src_dir, fn)
+        with open(target_src, "wb") as f:
+            f.write(content)
+                
+        saved_files.append(fn)
+        
+    return saved_files
+
+def delete_hmi_machine_files(machine_type: str, filenames: list[str]) -> list[str]:
+    """
+    Deletes specified files from IQOQDQ/OQ_HMI/Machine type/{machine_type}/.
+    """
+    clean_mach = machine_type.strip() if machine_type else "Standard"
+    src_dir = os.path.join(MACHINE_LIB_DIR, clean_mach)
+    
+    deleted = []
+    for fn in filenames:
+        src_fp = os.path.join(src_dir, fn)
+        if os.path.exists(src_fp):
+            try:
+                os.remove(src_fp)
+                deleted.append(fn)
+            except Exception:
+                pass
+                
+    return deleted
+
+def get_hmi_machine_file_bytes(machine_type: str, filename: str) -> bytes | None:
+    """
+    Reads and returns file bytes for download.
+    """
+    clean_mach = machine_type.strip() if machine_type else "Standard"
+    src_fp = os.path.join(MACHINE_LIB_DIR, clean_mach, filename)
+    if os.path.exists(src_fp):
+        with open(src_fp, "rb") as f:
+            return f.read()
+    return None
+
 def get_hmi_maintenance_records(machine_type: str = "Standard", visu_type: str = "IPC") -> pd.DataFrame:
     """Gets maintenance records for given machine type and visu type."""
     init_hmi_maintenance_db()

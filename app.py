@@ -6721,58 +6721,81 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
 
                 st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
 
-                # Visu Type selector for Maintenance
-                maint_visu_col, maint_btn_col = st.columns([2, 1])
-                with maint_visu_col:
-                    maint_selected_visu = st.radio(
-                        "🖥️ Visu Type to Maintain",
-                        ["IPC", "Magilis"],
-                        horizontal=True,
-                        key="oq_hmi_maint_visu_sel"
+                if sel_hmi_maint_mach:
+                    # 1. Upload / Dropzone Card (Matching OQ Alarm UI)
+                    st.markdown(f"##### 📤 Drop / Upload Word Templates to `{sel_hmi_maint_mach}`")
+                    maint_upload_files = st.file_uploader(
+                        f"Drop or Select Word Files (*.docx, *.doc) for {sel_hmi_maint_mach}",
+                        type=["docx", "doc", "docm"],
+                        accept_multiple_files=True,
+                        key="oq_hmi_maint_upload_dropzone",
+                        help="Upload master screen sub-templates for this machine"
                     )
 
-                with maint_btn_col:
-                    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
-                    with st.popover("➕ Add Screen Record", use_container_width=True):
-                        st.markdown(f"##### ➕ Add Screen Definition ({sel_hmi_maint_mach} - {maint_selected_visu})")
-                        add_func_code = st.text_input("Function Code (Optional)", placeholder="e.g. V0300, V0980", key="hmi_add_fc")
-                        add_screen_name = st.text_input("Screen Name", placeholder="e.g. Tube filling - Process values", key="hmi_add_sn")
-                        add_tab_idx = st.number_input("Tab Index", min_value=0, max_value=20, value=1, key="hmi_add_ti")
-                        add_exp_header = st.text_input("Expected Header Title", placeholder=r"\Operation\Tube filling\Process values", key="hmi_add_eh")
-
-                        if st.button("Save Record", type="primary", use_container_width=True, key="hmi_btn_save_rec"):
-                            if not add_screen_name.strip() or not add_exp_header.strip():
-                                st.error("❌ Screen Name and Expected Header Title are required.")
-                            else:
-                                try:
-                                    oq_hmi_svc.add_hmi_maintenance_record(
-                                        sel_hmi_maint_mach, maint_selected_visu, add_func_code.strip(), add_screen_name.strip(), add_tab_idx, add_exp_header.strip()
-                                    )
-                                    st.success("🎉 Screen definition added!")
+                    if maint_upload_files:
+                        up_c1, up_c2 = st.columns([1.5, 2])
+                        with up_c1:
+                            if st.button(f"💾 Save & Sync {len(maint_upload_files)} File(s) into {sel_hmi_maint_mach}", type="primary", use_container_width=True, key="oq_hmi_btn_save_uploaded_files"):
+                                with st.spinner(f"Saving and synchronizing template files for {sel_hmi_maint_mach}..."):
+                                    saved = oq_hmi_svc.upload_hmi_machine_files(sel_hmi_maint_mach, maint_upload_files)
+                                    st.success(f"🎉 Successfully saved {len(saved)} file(s) into `{sel_hmi_maint_mach}`!")
                                     st.rerun()
-                                except Exception as ex:
-                                    st.error(f"❌ Error: {str(ex)}")
 
-                # Display Current Maintenance Records in SQLite
-                st.markdown(f"##### 📋 Maintained Screen Definitions for `{sel_hmi_maint_mach}` ({maint_selected_visu})")
-                maint_records_df = oq_hmi_svc.get_hmi_maintenance_records(sel_hmi_maint_mach, maint_selected_visu)
+                    st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
 
-                if maint_records_df.empty:
-                    st.info(f"💡 No maintenance records found for `{sel_hmi_maint_mach}` ({maint_selected_visu}). Use '➕ Add Screen Record' above to create records.")
-                else:
-                    st.dataframe(maint_records_df, use_container_width=True, hide_index=True)
+                    # 2. File Table and Metrics (Matching OQ Alarm UI)
+                    df_maint_files = oq_hmi_svc.list_hmi_machine_files_detailed(sel_hmi_maint_mach)
 
-                    # Option to delete a record
-                    with st.expander("🗑️ Delete a Record", expanded=False):
-                        record_ids = maint_records_df['id'].tolist()
-                        sel_rec_id = st.selectbox("Select Record ID to Delete", record_ids, key="hmi_sel_del_rec_id")
-                        if st.button("Delete Selected Record", type="secondary", key="hmi_btn_del_rec"):
-                            try:
-                                oq_hmi_svc.delete_hmi_maintenance_record(sel_rec_id)
-                                st.success(f"🗑️ Record ID `{sel_rec_id}` deleted.")
-                                st.rerun()
-                            except Exception as ex:
-                                st.error(f"❌ Error: {str(ex)}")
+                    f_m1, f_m2, f_m3 = st.columns(3)
+                    f_m1.metric("📂 Total Templates", f"{len(df_maint_files)} Files")
+                    tot_kb = df_maint_files["Size (KB)"].sum() if not df_maint_files.empty else 0
+                    f_m2.metric("💾 Total Library Size", f"{tot_kb:.1f} KB")
+                    f_m3.metric("🏷️ Selected Machine", sel_hmi_maint_mach)
+
+                    st.markdown(f"##### 📋 Existing Template Files in `{sel_hmi_maint_mach}`")
+                    if not df_maint_files.empty:
+                        st.dataframe(df_maint_files, use_container_width=True, hide_index=True)
+
+                        # File Management Actions (Matching OQ Alarm UI)
+                        f_act_c1, f_act_c2 = st.columns(2)
+
+                        with f_act_c1:
+                            st.markdown("###### 🗑️ Delete Template File(s)")
+                            files_to_remove = st.multiselect(
+                                "Select file(s) to remove from library",
+                                df_maint_files["Filename"].tolist(),
+                                key="oq_hmi_maint_remove_sel",
+                                help="Select one or more files to delete"
+                            )
+                            if files_to_remove:
+                                if st.button(f"🗑️ Delete {len(files_to_remove)} Selected File(s)", type="secondary", key="oq_hmi_maint_btn_remove_files"):
+                                    deleted_list = oq_hmi_svc.delete_hmi_machine_files(sel_hmi_maint_mach, files_to_remove)
+                                    st.success(f"🗑️ Successfully deleted {len(deleted_list)} file(s).")
+                                    st.rerun()
+
+                        with f_act_c2:
+                            st.markdown("###### 📥 Download Template File")
+                            file_to_inspect = st.selectbox(
+                                "Select file to download & inspect",
+                                df_maint_files["Filename"].tolist(),
+                                key="oq_hmi_maint_inspect_sel"
+                            )
+                            if file_to_inspect:
+                                inspect_bytes = oq_hmi_svc.get_hmi_machine_file_bytes(sel_hmi_maint_mach, file_to_inspect)
+                                if inspect_bytes:
+                                    is_doc_ext = file_to_inspect.lower().endswith('.doc')
+                                    mime_ext = "application/msword" if is_doc_ext else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                    st.download_button(
+                                        label=f"📥 Download `{file_to_inspect}`",
+                                        data=inspect_bytes,
+                                        file_name=file_to_inspect,
+                                        mime=mime_ext,
+                                        key="oq_hmi_maint_btn_dl_single",
+                                        use_container_width=True
+                                    )
+                    else:
+                        st.info(f"💡 No template files found in `{sel_hmi_maint_mach}`. Use the uploader above to drop and save Word templates.")
+
             
         with tab_oq_alarm:
             import importlib
@@ -7435,7 +7458,7 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
         
     elif "Rename" in sub_section or "Tag" in sub_section:
         st.markdown("### 🏷️ Rename Tag & Custom Document Properties Tool")
-        st.caption("Batch update Custom Document Properties (Copyright, Version, Machine, Order, Baunummer), Document History dates, and automated file renaming.")
+        st.caption("Batch update Custom Document Properties (Copyright, Version, Machine, Order, Serial no., Designation), Document History dates, and automated file renaming.")
         
         import backend.rename_tag_service as rename_tag_svc
         try:
@@ -7444,84 +7467,25 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
             pass
 
         # Step 1: Input Word Files
-        st.markdown("##### 📁 1. Target Word Document File(s) Location & Selection")
-        st.caption("Insert a folder location path or upload Word (.docx, .doc) files to update properties, Document History dates, and file names.")
-        
-        rt_source_mode = st.radio(
-            "Select Target File Source Mode:",
-            ["📂 Folder Location Path (Insert Path / Select Files)", "📤 Upload Word Files Directly"],
-            horizontal=True,
-            key="rt_source_mode_radio"
-        )
-        
-        selected_files_to_process = []
-        if "Folder Location" in rt_source_mode:
-            loc_col1, loc_col2 = st.columns([3, 1])
-            with loc_col1:
-                target_folder_path = st.text_input(
-                    "Insert Target Folder Location Path:",
-                    value=r"IQOQDQ",
-                    key="rt_target_folder_input",
-                    help="Enter relative path (e.g. IQOQDQ, IQOQDQ/IQ_CCI) or absolute path (e.g. C:\\Users\\...\\IQOQDQ)"
-                )
-            with loc_col2:
-                st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
-                recursive_search = st.checkbox("Include Subfolders", value=True, key="rt_recursive_chk")
-            
-            ws_files = rename_tag_svc.get_workspace_word_files(target_folder_path, recursive_search)
-            
-            if ws_files:
-                st.success(f"📁 Found `{len(ws_files)}` Word document file(s) in location: `{os.path.abspath(target_folder_path)}`")
-                
-                ws_file_options = {f["rel_path"]: f for f in ws_files}
-                all_keys = list(ws_file_options.keys())
-                
-                # Action Buttons: Select All / Clear All
-                btn_sel_col1, btn_sel_col2, _ = st.columns([1, 1, 3])
-                if btn_sel_col1.button("✅ Select All", key="rt_btn_select_all", use_container_width=True):
-                    st.session_state["rt_ws_multiselect"] = all_keys
-                    st.rerun()
-                if btn_sel_col2.button("🧹 Clear All", key="rt_btn_clear_all", use_container_width=True):
-                    st.session_state["rt_ws_multiselect"] = []
-                    st.rerun()
+        st.markdown("##### 📁 1. Target Word Document File(s) Selection")
+        st.caption("Upload Word (.docx, .doc) files directly to update properties, Document History dates, and file names.")
 
-                selected_ws_paths = st.multiselect(
-                    "Select Target Word File(s) from Location:",
-                    all_keys,
-                    default=all_keys,
-                    key="rt_ws_multiselect"
-                )
-                
-                for rel_p in selected_ws_paths:
-                    if rel_p in ws_file_options:
-                        finfo = ws_file_options[rel_p]
-                        if os.path.exists(finfo["full_path"]):
-                            with open(finfo["full_path"], "rb") as rf:
-                                selected_files_to_process.append({
-                                    "filename": finfo["filename"],
-                                    "bytes": rf.read(),
-                                    "source_path": finfo["full_path"]
-                                })
-                st.caption(f"✅ Selected `{len(selected_files_to_process)}` file(s) from location for processing.")
-            else:
-                abs_p = os.path.abspath(target_folder_path) if target_folder_path else "N/A"
-                st.warning(f"⚠️ Location path `{target_folder_path}` (`{abs_p}`) does not exist or contains no Word (.docx, .doc) documents.")
-        else:
-            uploaded_word_files = st.file_uploader(
-                "Upload Target Word Files (*.docx, *.doc)",
-                type=["docx", "doc"],
-                accept_multiple_files=True,
-                key="rename_tag_file_uploader",
-                help="Insert one or multiple Word document files to update properties and file names"
-            )
-            if uploaded_word_files:
-                for uf in uploaded_word_files:
-                    selected_files_to_process.append({
-                        "filename": uf.name,
-                        "bytes": uf.getvalue(),
-                        "source_path": None
-                    })
-                st.caption(f"✅ Loaded `{len(uploaded_word_files)}` file(s) for processing.")
+        uploaded_word_files = st.file_uploader(
+            "Upload Target Word Files (*.docx, *.doc)",
+            type=["docx", "doc"],
+            accept_multiple_files=True,
+            key="rename_tag_file_uploader",
+            help="Insert one or multiple Word document files to update properties and file names"
+        )
+        selected_files_to_process = []
+        if uploaded_word_files:
+            for uf in uploaded_word_files:
+                selected_files_to_process.append({
+                    "filename": uf.name,
+                    "bytes": uf.getvalue(),
+                    "source_path": None
+                })
+            st.caption(f"✅ Loaded `{len(uploaded_word_files)}` file(s) for processing.")
 
         st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
 
@@ -7554,10 +7518,10 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                 help="Custom property 'Version'"
             )
             val_baunummer = st.text_input(
-                "5. Baunummer",
+                "5. Serial no.",
                 value="XXX",
                 key="rt_val_baunummer",
-                help="Custom property 'Baunummer'"
+                help="Custom property 'Serial no.' (Baunummer)"
             )
 
         with col_p3:
@@ -7568,10 +7532,10 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                 help="Custom property 'Machine'"
             )
             val_bezeichnung = st.text_input(
-                "6. Bezeichnung",
+                "6. Designation",
                 value="Cartoning machine, Tube filling machine, Filling platform",
                 key="rt_val_bezeichnung",
-                help="Custom property 'Bezeichnung'"
+                help="Custom property 'Designation' (Bezeichnung)"
             )
 
         val_date = st.text_input(
@@ -7618,21 +7582,16 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                 st.error("❌ Please enter the Order number.")
             else:
                 with st.spinner("Updating Custom Properties, Document History text, and renaming files..."):
-                    results_list = []
-                    for fitem in selected_files_to_process:
-                        res = rename_tag_svc.process_single_docx(
-                            docx_bytes=fitem["bytes"],
-                            orig_filename=fitem["filename"],
-                            copyright_val=val_copyright,
-                            version_val=val_version,
-                            machine_val=val_machine,
-                            order_val=val_order,
-                            baunummer_val=val_baunummer,
-                            date_val=val_date,
-                            bezeichnung_val=val_bezeichnung
-                        )
-                        res["source_path"] = fitem["source_path"]
-                        results_list.append(res)
+                    results_list = rename_tag_svc.process_batch_word_files(
+                        file_items=selected_files_to_process,
+                        copyright_val=val_copyright,
+                        version_val=val_version,
+                        machine_val=val_machine,
+                        order_val=val_order,
+                        baunummer_val=val_baunummer,
+                        date_val=val_date,
+                        bezeichnung_val=val_bezeichnung
+                    )
 
                     st.session_state["rename_tag_last_results"] = results_list
                     st.success(f"🎉 **Successfully Processed {len(results_list)} File(s)!** Custom Document Properties and File Names updated.")
