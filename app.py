@@ -45,6 +45,17 @@ try:
 except Exception:
     SURYA_AVAILABLE = False
 
+# Import custom backend services for Handwriting Form-to-Excel OCR
+try:
+    from backend.alignment_service import align_document_page
+    from backend.calibration_pdf_generator import generate_calibration_sheet_pdf
+    from backend.calibration_matching import process_scanned_calibration_sheet, classify_with_calibration
+    from backend.excel_service import ExcelExportService
+    from backend.models import OCRData, CalibrationProfile, get_db_session, init_db
+    init_db()
+except Exception as e:
+    print(f"Warning: Could not import backend services: {e}")
+
 # ---------------------------------------------------------------------------
 # PDF → Image conversion using PyMuPDF (no Poppler or Tesseract required)
 # ---------------------------------------------------------------------------
@@ -2253,12 +2264,27 @@ def render_ocr_adjustment_page():
 # Advanced OCR Adjustment (Qwen vLLM)
 # ---------------------------------------------------------------------------
 def render_advanced_ocr_adjustment_page():
-    st.title("🌟 Advanced OCR Adjustment (Qwen LLM)")
-    st.subheader("Extract Handwritten Values & Populate Excel Templates using Qwen 3.6 35B")
+    st.title("🌟 Handwriting Form-to-Excel OCR with Custom Calibration")
+    st.subheader("Perspective Alignment, Vision-LLM OCR, Few-Shot Embedding Calibration & Multi-Sheet Excel Writeback")
     
-    # Initialize session state for Qwen OCR Adjustment
+    # Initialize session state
     if "qwen_adj_mapping" not in st.session_state:
-        st.session_state.qwen_adj_mapping = pd.DataFrame(DEFAULT_ADJ_MAPPING)
+        # Default dynamic mapping matching sample 57511 Excel sheet F1
+        st.session_state.qwen_adj_mapping = pd.DataFrame([
+            {"Field Name": "FormatNo", "Sheet": "F1", "Excel Cell": "F5", "PDF Page": 1, "Top (%)": 19.3, "Left (%)": 57.2, "Height (%)": 2.0, "Width (%)": 20.0},
+            {"Field Name": "Dimension", "Sheet": "F1", "Excel Cell": "E6", "PDF Page": 1, "Top (%)": 21.3, "Left (%)": 57.2, "Height (%)": 2.0, "Width (%)": 35.0},
+            {"Field Name": "Description", "Sheet": "F1", "Excel Cell": "E7", "PDF Page": 1, "Top (%)": 23.3, "Left (%)": 57.2, "Height (%)": 2.0, "Width (%)": 35.0},
+            {"Field Name": "Speed", "Sheet": "F1", "Excel Cell": "E9", "PDF Page": 1, "Top (%)": 26.9, "Left (%)": 54.9, "Height (%)": 2.2, "Width (%)": 12.0},
+            {"Field Name": "CartonChainHeight", "Sheet": "F1", "Excel Cell": "H22", "PDF Page": 1, "Top (%)": 52.4, "Left (%)": 76.5, "Height (%)": 2.0, "Width (%)": 15.0},
+            {"Field Name": "FormatPartsLeftRight", "Sheet": "F1", "Excel Cell": "H24", "PDF Page": 1, "Top (%)": 56.3, "Left (%)": 76.5, "Height (%)": 2.0, "Width (%)": 15.0},
+            {"Field Name": "SuctionArm", "Sheet": "F1", "Excel Cell": "H25", "PDF Page": 1, "Top (%)": 58.1, "Left (%)": 76.5, "Height (%)": 2.0, "Width (%)": 15.0},
+            {"Field Name": "CounterSuction_Z", "Sheet": "F1", "Excel Cell": "H30", "PDF Page": 1, "Top (%)": 63.6, "Left (%)": 76.5, "Height (%)": 2.0, "Width (%)": 15.0},
+            {"Field Name": "CounterSuction_Y", "Sheet": "F1", "Excel Cell": "H31", "PDF Page": 1, "Top (%)": 66.5, "Left (%)": 76.5, "Height (%)": 2.0, "Width (%)": 15.0},
+            {"Field Name": "LatchOpener_LY", "Sheet": "F1", "Excel Cell": "H33", "PDF Page": 1, "Top (%)": 71.2, "Left (%)": 76.5, "Height (%)": 2.0, "Width (%)": 15.0},
+            {"Field Name": "LatchOpener_LX", "Sheet": "F1", "Excel Cell": "H34", "PDF Page": 1, "Top (%)": 73.0, "Left (%)": 76.5, "Height (%)": 2.0, "Width (%)": 15.0},
+            {"Field Name": "Erection_LOY", "Sheet": "F1", "Excel Cell": "H36", "PDF Page": 1, "Top (%)": 80.6, "Left (%)": 76.5, "Height (%)": 2.0, "Width (%)": 15.0},
+            {"Field Name": "Erection_LUY", "Sheet": "F1", "Excel Cell": "H37", "PDF Page": 1, "Top (%)": 83.0, "Left (%)": 76.5, "Height (%)": 2.0, "Width (%)": 15.0}
+        ])
     if "qwen_adj_excel_bytes" not in st.session_state:
         st.session_state.qwen_adj_excel_bytes = None
     if "qwen_adj_excel_filename" not in st.session_state:
@@ -2271,41 +2297,93 @@ def render_advanced_ocr_adjustment_page():
         st.session_state.qwen_adj_pdf_images = None
     if "qwen_adj_ocr_results" not in st.session_state:
         st.session_state.qwen_adj_ocr_results = {}
+    if "calibration_user_name" not in st.session_state:
+        st.session_state.calibration_user_name = "Operator_1"
         
-    # Render Workflow Ribbon Tab
-    sub_tab1, sub_tab2, sub_tab3, sub_tab4, sub_tab5, sub_tab6, sub_tab7 = st.tabs([
+    # Tabs
+    tab_over, tab_calib, tab_map, tab_up, tab_proc, tab_review, tab_export = st.tabs([
         "📋 Overview",
-        "⚙️ Excel Mapping",
-        "📂 Upload Template",
-        "📄 Upload PDF",
-        "⚡ OCR Processing",
-        "✍️ Review & Correction",
-        "📥 Export"
+        "📜 36-Box Calibration",
+        "⚙️ Cell Mapping",
+        "📂 Upload Files",
+        "⚡ OCR & Calibration",
+        "✍️ Review UX & Rapid-Fire",
+        "📥 Multi-Sheet Export"
     ])
     
-    with sub_tab1:
-        st.markdown("### 📊 Workflow Overview")
-        st.write("This module automates handwriting extraction using a local vLLM endpoint (`nvidia/Qwen3.6-35B-A3B-NVFP4`).")
+    with tab_over:
+        st.markdown("### 📊 Project Overview & Pipeline")
+        st.markdown("""
+        **Workflow Rule (Strict Enforcement)**:
+        `PDF -> OCR -> Human Review -> SQLite -> Mapping -> Excel Export`
         
-        # Display Status checklist
-        st.markdown("#### 📂 Upload Status")
-        col_st1, col_st2 = st.columns(2)
-        with col_st1:
+        * **Module 1**: OpenCV Perspective Alignment & Homography Deskewing.
+        * **Module 2**: Handwriting Recognition (Qwen 3.6 35B / Fallback) + 36-Box Calibration Embeddings & Cosine Similarity Matcher.
+        * **Module 3**: Verification UX with **Split-Screen**, **Rapid-Fire Keyboard Mode (< 75% Confidence)**, and **Active Learning Profile Tuning**.
+        * **Module 4**: Dynamic Multi-Sheet `openpyxl` Writeback without formula or formatting loss.
+        """)
+        
+        st.markdown("#### 📂 Active System Status")
+        c1, c2, c3 = st.columns(3)
+        with c1:
             if st.session_state.qwen_adj_excel_bytes:
-                st.success(f"✅ Excel Template Uploaded: `{st.session_state.qwen_adj_excel_filename}`")
+                st.success(f"✅ Excel Template: `{st.session_state.qwen_adj_excel_filename}`")
             else:
-                st.warning("⚠️ Excel Template: Not Uploaded yet")
-        with col_st2:
+                st.info("ℹ️ Excel Template: Not Uploaded")
+        with c2:
             if st.session_state.qwen_adj_pdf_bytes:
-                st.success(f"✅ PDF Scanned Form Uploaded: `{st.session_state.qwen_adj_pdf_filename}`")
+                st.success(f"✅ PDF Form: `{st.session_state.qwen_adj_pdf_filename}`")
             else:
-                st.warning("⚠️ PDF Scanned Form: Not Uploaded yet")
-                
-    with sub_tab2:
-        st.markdown("### ⚙️ Template & Cell Mapping Configuration")
-        st.write("Map each target Excel cell to the specific coordinates of the scanned PDF form.")
+                st.info("ℹ️ PDF Form: Not Uploaded")
+        with c3:
+            session = get_db_session()
+            profile_count = session.query(CalibrationProfile.user_name).distinct().count()
+            session.close()
+            st.success(f"👤 Calibration Profiles in DB: `{profile_count}`")
+            
+    with tab_calib:
+        st.markdown("### 📜 Personalized Handwriting Calibration Sheet (36-Box Grid)")
+        st.write("Generate, print, fill, and train user-specific handwriting profiles for 0-9 and A-Z.")
         
-        # Editable DataFrame
+        col_gen, col_upload = st.columns(2)
+        with col_gen:
+            st.markdown("#### 1️⃣ Print Calibration Template")
+            user_input_name = st.text_input("Operator / User Profile Name:", value=st.session_state.calibration_user_name)
+            st.session_state.calibration_user_name = user_input_name
+            
+            pdf_bytes = generate_calibration_sheet_pdf(user_input_name)
+            st.download_button(
+                label="🖨️ Download Printable 36-Box PDF Calibration Sheet",
+                data=pdf_bytes,
+                file_name=f"handwriting_calibration_sheet_{user_input_name}.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+            st.caption("Print out this A4 form, fill out the 36 boxes (0-9, A-Z) with pen, scan at 300 DPI, and upload on the right.")
+            
+        with col_upload:
+            st.markdown("#### 2️⃣ Upload Scanned Calibration Sheet")
+            calib_file = st.file_uploader("Upload Scanned Calibration Sheet (.pdf / .png / .jpg)", type=["pdf", "png", "jpg", "jpeg"], key="calib_up")
+            if calib_file:
+                if st.button("⚡ Process & Train Calibration Profile", type="primary", use_container_width=True):
+                    with st.spinner("Extracting 36 character crops and computing feature embeddings..."):
+                        res = process_scanned_calibration_sheet(calib_file.read(), user_input_name)
+                        st.success(f"🎉 Successfully trained profile for '{user_input_name}'! Saved {res['chars_saved']} character embeddings to SQLite.")
+                        
+    with tab_map:
+        st.markdown("### ⚙️ Template & Cell Mapping Configuration")
+        st.write("Configure target Excel sheets and cell addresses dynamically. Move boxes freely on the canvas with mouse or auto-align.")
+        
+        col_map_b1, col_map_b2 = st.columns([2, 1])
+        with col_map_b2:
+            if st.session_state.qwen_adj_pdf_images:
+                if st.button("🪄 Auto-Snap Boxes to Form Labels", type="primary", use_container_width=True):
+                    from backend.anchor_aligner import auto_detect_field_boxes
+                    auto_boxes = auto_detect_field_boxes(st.session_state.qwen_adj_pdf_images[0])
+                    st.session_state.qwen_adj_mapping = pd.DataFrame(auto_boxes)
+                    st.toast("Successfully snapped bounding boxes to document labels!", icon="✨")
+                    st.rerun()
+                    
         edited_df = st.data_editor(
             st.session_state.qwen_adj_mapping,
             num_rows="dynamic",
@@ -2313,128 +2391,317 @@ def render_advanced_ocr_adjustment_page():
         )
         st.session_state.qwen_adj_mapping = edited_df
         
-        # Visual Bounding Box Preview
         if st.session_state.qwen_adj_pdf_images:
-            st.markdown("#### 👁️ Bounding Box Visual Overlay")
+            st.markdown("#### 🖱️ Direct Multi-Box Mouse Adjuster (Fabric.js Interactive Canvas)")
+            st.caption("Click and drag ANY red box directly on the document image below with your mouse to move or resize it freely!")
+            
+            from backend.interactive_canvas import render_fabric_canvas
+            import streamlit.components.v1 as components
+            
+            page_img = st.session_state.qwen_adj_pdf_images[0]
+            fabric_html = render_fabric_canvas(page_img, edited_df)
+            components.html(fabric_html, height=720, scrolling=True)
+
+            st.markdown("#### 🎯 Single-Box Precision Mouse Cropper")
+            st.caption("Select a specific field below for fine-grained handle adjustments.")
+            
+            field_names = edited_df["Field Name"].tolist() if "Field Name" in edited_df else []
+            if field_names:
+                sel_field = st.selectbox("Choose Field to Move Box:", field_names)
+                field_rows = edited_df[edited_df["Field Name"] == sel_field]
+                if not field_rows.empty:
+                    f_row = field_rows.iloc[0]
+                    f_idx = field_rows.index[0]
+                    
+                    w_img, h_img = page_img.size
+                    
+                    top_pct = float(f_row["Top (%)"])
+                    left_pct = float(f_row["Left (%)"])
+                    h_pct = float(f_row["Height (%)"])
+                    w_pct = float(f_row["Width (%)"])
+                    
+                    x1 = int(left_pct * w_img / 100)
+                    y1 = int(top_pct * h_img / 100)
+                    x2 = int((left_pct + w_pct) * w_img / 100)
+                    y2 = int((top_pct + h_pct) * h_img / 100)
+                    
+                    from streamlit_cropper import st_cropper
+                    cropper_box = st_cropper(
+                        page_img.convert("RGB"),
+                        realtime_update=True,
+                        box_color='#EF4444',
+                        aspect_ratio=None,
+                        default_coords=(x1, y1, x2, y2),
+                        return_type='box',
+                        key=f"cropper_{sel_field}"
+                    )
+                    
+                    if cropper_box:
+                        new_left_pct = round((cropper_box['left'] / w_img) * 100, 1)
+                        new_top_pct = round((cropper_box['top'] / h_img) * 100, 1)
+                        new_width_pct = round((cropper_box['width'] / w_img) * 100, 1)
+                        new_height_pct = round((cropper_box['height'] / h_img) * 100, 1)
+                        
+                        col_c1, col_c2 = st.columns([1, 1])
+                        with col_c1:
+                            st.info(f"New Position: Left `{new_left_pct}%`, Top `{new_top_pct}%`, Width `{new_width_pct}%`, Height `{new_height_pct}%`")
+                        with col_c2:
+                            if st.button(f"💾 Save Moved Box for '{sel_field}'", type="primary", use_container_width=True):
+                                st.session_state.qwen_adj_mapping.at[f_idx, "Top (%)"] = new_top_pct
+                                st.session_state.qwen_adj_mapping.at[f_idx, "Left (%)"] = new_left_pct
+                                st.session_state.qwen_adj_mapping.at[f_idx, "Height (%)"] = new_height_pct
+                                st.session_state.qwen_adj_mapping.at[f_idx, "Width (%)"] = new_width_pct
+                                st.toast(f"Saved new position for '{sel_field}'!", icon="🎉")
+                                st.rerun()
+
+            st.markdown("#### 👁️ Bounding Box Visual Overlay Preview")
             try:
-                preview_img = draw_mapping_boxes(st.session_state.qwen_adj_pdf_images[0], edited_df)
+                preview_img = draw_mapping_boxes(st.session_state.qwen_adj_pdf_images[0], st.session_state.qwen_adj_mapping)
                 st.image(preview_img, use_container_width=True)
             except Exception as e:
-                st.error(f"Failed to generate preview: {e}")
-        else:
-            st.info("ℹ️ Upload a scanned PDF form in the **Upload PDF** tab to see a visual box overlay preview.")
-            
-    with sub_tab3:
-        st.markdown("### 📂 Upload Excel Template")
-        excel_file = st.file_uploader("Choose Excel Template file (.xlsx)", type=["xlsx"], key="qwen_excel_up")
-        if excel_file:
-            st.session_state.qwen_adj_excel_bytes = excel_file.read()
-            st.session_state.qwen_adj_excel_filename = excel_file.name
-            st.success(f"Successfully loaded master Excel template: `{excel_file.name}`")
-            
-    with sub_tab4:
-        st.markdown("### 📄 Upload Scanned PDF Form")
-        pdf_file = st.file_uploader("Choose Scanned PDF file (.pdf)", type=["pdf"], key="qwen_pdf_up")
-        if pdf_file:
-            st.session_state.qwen_adj_pdf_bytes = pdf_file.read()
-            st.session_state.qwen_adj_pdf_filename = pdf_file.name
-            try:
-                st.session_state.qwen_adj_pdf_images = convert_pdf_to_images(st.session_state.qwen_adj_pdf_bytes, dpi=150)
-                st.success(f"Successfully loaded and rendered `{pdf_file.name}`")
-            except Exception as e:
-                st.error(f"Failed to convert PDF: {e}")
+                st.error(f"Failed to generate box preview: {e}")
+
                 
-    with sub_tab5:
-        st.markdown("### ⚡ Run LLM OCR Processing")
-        st.write("Process cropped cells using the local Qwen LLM endpoint.")
+    with tab_up:
+        st.markdown("### 📂 Upload Master Files")
+        col_ex, col_pdf = st.columns(2)
+        with col_ex:
+            st.markdown("#### Master Excel Template (.xlsx)")
+            excel_file = st.file_uploader("Choose Excel Template file", type=["xlsx"], key="qwen_excel_up_v2")
+            if excel_file:
+                st.session_state.qwen_adj_excel_bytes = excel_file.read()
+                st.session_state.qwen_adj_excel_filename = excel_file.name
+                st.success(f"Loaded Excel template: `{excel_file.name}`")
+        with col_pdf:
+            st.markdown("#### Scanned Form PDF (.pdf)")
+            pdf_file = st.file_uploader("Choose Scanned PDF Form", type=["pdf"], key="qwen_pdf_up_v2")
+            if pdf_file:
+                st.session_state.qwen_adj_pdf_bytes = pdf_file.read()
+                st.session_state.qwen_adj_pdf_filename = pdf_file.name
+                try:
+                    imgs = convert_pdf_to_images(st.session_state.qwen_adj_pdf_bytes, dpi=150)
+                    st.session_state.qwen_adj_pdf_images = imgs
+                    st.success(f"Rendered {len(imgs)} page(s) from `{pdf_file.name}`")
+                except Exception as e:
+                    st.error(f"Failed to convert PDF: {e}")
+                    
+    with tab_proc:
+        st.markdown("### ⚡ Run Alignment, OCR & Calibration Processing")
         
         if not st.session_state.qwen_adj_pdf_images:
-            st.warning("⚠️ Please upload a scanned PDF form first.")
+            st.warning("⚠️ Please upload a scanned PDF form in the **Upload Files** tab first.")
         else:
-            if st.button("Start Qwen LLM Extraction", type="primary"):
+            col_opt1, col_opt2 = st.columns(2)
+            with col_opt1:
+                use_alignment = st.checkbox("Enable OpenCV Homography Perspective Alignment (Deskew)", value=True)
+            with col_opt2:
+                session = get_db_session()
+                available_profiles = [p[0] for p in session.query(CalibrationProfile.user_name).distinct().all()]
+                session.close()
+                if not available_profiles:
+                    available_profiles = ["Default"]
+                selected_profile = st.selectbox("Select Active Calibration Profile:", available_profiles)
+                
+            if st.button("🚀 Start Form Extraction & Calibration Matching", type="primary", use_container_width=True):
                 progress_bar = st.progress(0)
                 status_text = st.empty()
-                
                 results = {}
                 mapping_df = st.session_state.qwen_adj_mapping
                 total_fields = len(mapping_df)
                 
+                # Database session for audit trail
+                session = get_db_session()
+                doc_id = st.session_state.qwen_adj_pdf_filename or "DOC_001"
+                
                 for idx, row in mapping_df.iterrows():
-                    name = row["Field Name"]
-                    cell = row["Excel Cell"]
+                    name = str(row["Field Name"])
+                    sheet = str(row.get("Sheet", "F1"))
+                    cell = str(row["Excel Cell"])
+                    cell_full = f"{sheet}!{cell}"
+                    
                     page_num = int(row["PDF Page"]) - 1
                     top = float(row["Top (%)"])
                     left = float(row["Left (%)"])
                     h = float(row["Height (%)"])
                     w = float(row["Width (%)"])
                     
-                    status_text.text(f"Querying LLM for field: '{name}'...")
+                    status_text.text(f"Processing Field [{idx+1}/{total_fields}]: '{name}' ({cell_full})...")
                     
                     if page_num < len(st.session_state.qwen_adj_pdf_images):
-                        page_img = st.session_state.qwen_adj_pdf_images[page_num]
+                        raw_page_img = st.session_state.qwen_adj_pdf_images[page_num]
+                        
+                        # Apply OpenCV Homography Perspective Alignment if enabled
+                        if use_alignment:
+                            page_img = align_document_page(raw_page_img, target_width=raw_page_img.width, target_height=raw_page_img.height)
+                        else:
+                            page_img = raw_page_img
+                            
                         crop_img = crop_by_percent(page_img, top, left, h, w)
                         
-                        # Run Qwen OCR
+                        # Primary OCR (Qwen / Fallback)
                         text, conf = run_qwen_ocr(crop_img)
+                        
+                        # Few-Shot Cosine Similarity Calibration Matching
+                        final_text, final_conf, top_matches = classify_with_calibration(
+                            crop_img, selected_profile, text, conf
+                        )
+                        
                         results[name] = {
                             "Field Name": name,
+                            "Sheet": sheet,
                             "Excel Cell": cell,
+                            "Cell Full": cell_full,
                             "Detected Value": text,
-                            "Corrected Value": text,
-                            "Confidence": conf,
-                            "Crop Image": crop_img
+                            "Corrected Value": final_text,
+                            "Confidence": final_conf,
+                            "Crop Image": crop_img,
+                            "Top Matches": top_matches
                         }
+                        
+                        # Record audit trail in SQLite ocr_data table
+                        db_record = OCRData(
+                            document_id=doc_id,
+                            field_name=name,
+                            sheet_name=sheet,
+                            excel_cell=cell,
+                            ocr_value=text,
+                            corrected_value=final_text,
+                            confidence=final_conf,
+                            engine_used="Qwen3.6-vLLM + CosineCalibration",
+                            status="Reviewed" if final_conf >= 0.75 else "Pending"
+                        )
+                        session.add(db_record)
+                        
                     progress_bar.progress((idx + 1) / total_fields)
                     
-                st.session_state.qwen_adj_ocr_results = results
-                status_text.text("LLM processing completed successfully! ✅")
-                st.success("Extraction done. Proceed to **Review & Correction** tab.")
+                session.commit()
+                session.close()
                 
-    with sub_tab6:
-        st.markdown("### ✍️ Review & Correct Extracted Handwriting")
+                st.session_state.qwen_adj_ocr_results = results
+                status_text.text("Extraction and Cosine Similarity Calibration completed! ✅")
+                st.success("Proceed to **Review UX & Rapid-Fire** tab to verify results.")
+                
+    with tab_review:
+        st.markdown("### ✍️ Human Verification & Rapid-Fire UX Workflow")
+        
         if not st.session_state.qwen_adj_ocr_results:
-            st.info("ℹ️ No OCR results yet. Please run the OCR processing task.")
+            st.info("ℹ️ No OCR extraction results available yet. Run processing in Tab 5.")
         else:
-            for name, item in list(st.session_state.qwen_adj_ocr_results.items()):
-                with st.container(border=True):
-                    col_info, col_crop, col_input = st.columns([2, 2, 3])
-                    with col_info:
-                        st.markdown(f"**Field:** `{name}`")
-                        st.markdown(f"**Excel Cell:** `{item['Excel Cell']}`")
-                        st.markdown(f"**LLM Output:** `{item['Detected Value']}`")
-                    with col_crop:
-                        st.markdown("**Handwriting Crop:**")
-                        st.image(item["Crop Image"], use_container_width=True)
-                    with col_input:
-                        corrected_val = st.text_input(
-                            f"Confirm / Correct Value for '{name}'",
-                            value=item["Corrected Value"],
-                            key=f"qwen_corr_{name}"
-                        )
-                        st.session_state.qwen_adj_ocr_results[name]["Corrected Value"] = corrected_val
-                        
-    with sub_tab7:
-        st.markdown("### 📥 Export Formatted Workbook")
+            mode = st.radio("Select Verification Mode:", ["1️⃣ Split-Screen View", "2️⃣ Rapid-Fire Keyboard Mode (< 75% Confidence)", "3️⃣ Profile-Tuning Active Learning"], horizontal=True)
+            
+            if mode == "1️⃣ Split-Screen View":
+                col_left, col_right = st.columns([1, 1])
+                with col_left:
+                    st.markdown("#### 📄 Document Visualizer")
+                    if st.session_state.qwen_adj_pdf_images:
+                        preview_img = draw_mapping_boxes(st.session_state.qwen_adj_pdf_images[0], st.session_state.qwen_adj_mapping)
+                        st.image(preview_img, use_container_width=True)
+                with col_right:
+                    st.markdown("#### 📝 Verification Data Table")
+                    for name, item in list(st.session_state.qwen_adj_ocr_results.items()):
+                        conf = item["Confidence"]
+                        status_color = "🟢" if conf >= 0.75 else "🔴"
+                        with st.container(border=True):
+                            c_snippet, c_details = st.columns([1, 2])
+                            with c_snippet:
+                                st.image(item["Crop Image"], caption=f"{item['Field Name']} ({item['Excel Cell']})", use_container_width=True)
+                            with c_details:
+                                st.markdown(f"**{name}** (`{item['Cell Full']}`) {status_color} Conf: `{conf*100:.0f}%`")
+                                new_val = st.text_input(
+                                    f"Value:",
+                                    value=item["Corrected Value"],
+                                    key=f"split_corr_{name}"
+                                )
+                                st.session_state.qwen_adj_ocr_results[name]["Corrected Value"] = new_val
+                                
+            elif mode == "2️⃣ Rapid-Fire Keyboard Mode (< 75% Confidence)":
+                low_conf_items = {k: v for k, v in st.session_state.qwen_adj_ocr_results.items() if v["Confidence"] < 0.75}
+                if not low_conf_items:
+                    st.success("🎉 All fields have high confidence (≥ 75%)! No rapid-fire corrections needed.")
+                else:
+                    st.warning(f"⚠️ `{len(low_conf_items)}` field(s) require rapid keyboard review.")
+                    st.caption("Press Enter in each text box to quickly confirm and move to the next field.")
+                    
+                    for name, item in low_conf_items.items():
+                        with st.container(border=True):
+                            c_img, c_in = st.columns([1, 2])
+                            with c_img:
+                                st.image(item["Crop Image"], caption=f"Field: {name}", use_container_width=True)
+                            with c_in:
+                                st.markdown(f"Target: `{item['Cell Full']}` | Confidence: **🔴 {item['Confidence']*100:.0f}%**")
+                                corrected = st.text_input(
+                                    f"Rapid Confirm '{name}'",
+                                    value=item["Corrected Value"],
+                                    key=f"rf_corr_{name}"
+                                )
+                                st.session_state.qwen_adj_ocr_results[name]["Corrected Value"] = corrected
+                                
+            elif mode == "3️⃣ Profile-Tuning Active Learning":
+                st.markdown("#### 🧠 Profile Tuning & Character Embedding Suggestions")
+                st.write("Compare extracted crop snippets against stored calibration profile samples.")
+                
+                for name, item in list(st.session_state.qwen_adj_ocr_results.items()):
+                    with st.container(border=True):
+                        c1, c2, c3 = st.columns([1, 1, 2])
+                        with c1:
+                            st.markdown("**Extracted Form Crop:**")
+                            st.image(item["Crop Image"], use_container_width=True)
+                        with c2:
+                            st.markdown("**Profile Matches:**")
+                            matches = item.get("Top Matches", [])
+                            if matches:
+                                for m_char, m_score, m_path in matches:
+                                    st.write(f"- Match **'{m_char}'** (Sim: `{m_score:.2f}`)")
+                            else:
+                                st.caption("No profile matches found.")
+                        with c3:
+                            st.markdown(f"**Field:** `{name}`")
+                            corrected = st.text_input(f"Corrected Value:", value=item["Corrected Value"], key=f"tune_corr_{name}")
+                            st.session_state.qwen_adj_ocr_results[name]["Corrected Value"] = corrected
+                            
+                            if st.button(f"➕ Add sample to '{st.session_state.calibration_user_name}' Profile", key=f"active_learn_{name}"):
+                                # Save active learning sample to DB
+                                session = get_db_session()
+                                emb = compute_image_embedding(item["Crop Image"])
+                                p_entry = CalibrationProfile(
+                                    user_name=st.session_state.calibration_user_name,
+                                    char_code=corrected.strip().upper()[:1] if corrected.strip() else "0",
+                                    feature_vector_json=json.dumps(emb.tolist())
+                                )
+                                session.add(p_entry)
+                                session.commit()
+                                session.close()
+                                st.toast(f"Saved '{corrected}' to calibration profile!", icon="✨")
+                                
+    with tab_export:
+        st.markdown("### 📥 Multi-Sheet Excel Export Integration")
         if not st.session_state.qwen_adj_excel_bytes:
-            st.warning("⚠️ Master Excel template is missing.")
+            st.warning("⚠️ Master Excel template missing. Upload in Tab 4.")
         elif not st.session_state.qwen_adj_ocr_results:
-            st.warning("⚠️ No corrected values available.")
+            st.warning("⚠️ No extraction results available.")
         else:
-            if st.button("Generate & Write to Excel", type="primary"):
+            if st.button("🚀 Generate Multi-Sheet Excel File", type="primary", use_container_width=True):
                 try:
-                    final_excel = write_values_to_excel(
+                    exporter = ExcelExportService()
+                    final_excel = exporter.export_excel(
                         st.session_state.qwen_adj_excel_bytes,
                         st.session_state.qwen_adj_ocr_results
                     )
-                    st.success("Successfully populated all values to Excel! 🎉")
+                    
+                    st.success("Successfully populated all multi-sheet cells using openpyxl! 🎉")
                     st.download_button(
-                        label="⬇️ Download Completed Excel File",
+                        label="⬇️ Download Completed Excel File (.xlsx)",
                         data=final_excel,
-                        file_name="completed_qwen_adjustment_form.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        file_name="completed_adjustment_chart_SAT.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        use_container_width=True
                     )
                 except Exception as e:
-                    st.error(f"Failed to export Excel: {e}")
+                    st.error(f"Failed to export Excel workbook: {e}")
+
+# ---------------------------------------------------------------------------
+# Calibration Certificate Processing Tool
+
 
 # ---------------------------------------------------------------------------
 # Calibration Certificate Processing Tool
