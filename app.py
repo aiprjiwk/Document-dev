@@ -1680,53 +1680,76 @@ def extract_drawing_status_from_excel(excel_bytes):
             if machine_name != "Unknown":
                 break
             
-    # 2. Find header row and column mappings (case-insensitive)
+    # 2. Find header row and column mappings dynamically across top rows (case-insensitive)
     header_row_idx = None
     col_mapping = {}
+    found_stat_col = None
     
     for r_idx in range(1, min(ws.max_row + 1, 200)):
         row_cells = [ws.cell(row=r_idx, column=c_idx).value for c_idx in range(1, min(ws.max_column + 1, 50))]
         
-        including_col = None
         for c_idx, val in enumerate(row_cells, start=1):
-            if val and isinstance(val, str) and "including" in val.lower():
-                including_col = c_idx
-                break
-                
-        if including_col is not None:
-            header_row_idx = r_idx
-            col_mapping["including"] = including_col
-            # The next column is drawing description
-            col_mapping["drawings"] = including_col + 1
-            
-            for c_idx, val in enumerate(row_cells, start=1):
-                if val and isinstance(val, str):
-                    val_clean = val.strip().lower()
-                    if val_clean == "revfix":
-                        col_mapping["revfix"] = c_idx
-                    elif val_clean == "vs":
-                        col_mapping["vs"] = c_idx
-                    elif val_clean == "stat":
-                        col_mapping["stat"] = c_idx + 1  # Actual status values are in Column R (column Q + 1)
-            break
-            
-    # 3. Fallback standard columns if header row not found
+            if val and isinstance(val, str):
+                val_clean = val.strip().lower()
+                if "including" in val_clean and "including" not in col_mapping:
+                    col_mapping["including"] = c_idx
+                    col_mapping["drawings"] = c_idx + 1
+                    if header_row_idx is None:
+                        header_row_idx = r_idx
+                elif val_clean == "revfix" and "revfix" not in col_mapping:
+                    col_mapping["revfix"] = c_idx
+                elif val_clean == "vs" and "vs" not in col_mapping:
+                    col_mapping["vs"] = c_idx
+                elif val_clean == "stat" and found_stat_col is None:
+                    found_stat_col = c_idx
+
     if header_row_idx is None:
-        col_mapping = {
-            "including": 1,
-            "drawings": 2,
-            "revfix": 9,
-            "vs": 15,
-            "stat": 18  # Column R
-        }
-        header_row_idx = 33
-        
-    # Ensure standard fallbacks
+        header_row_idx = 32
+
+    # Standard fallbacks if headers weren't found
     if "including" not in col_mapping: col_mapping["including"] = 1
     if "drawings" not in col_mapping: col_mapping["drawings"] = 2
     if "revfix" not in col_mapping: col_mapping["revfix"] = 9
     if "vs" not in col_mapping: col_mapping["vs"] = 15
-    if "stat" not in col_mapping: col_mapping["stat"] = 18
+
+    # Determine exact column for Stat values dynamically by inspecting data rows
+    stat_candidate_cols = []
+    if found_stat_col is not None:
+        # Prioritize columns right around found Stat header offset
+        for offset in [1, 0, 2, 3, -1, -2, 4, 5]:
+            stat_candidate_cols.append(found_stat_col + offset)
+    
+    # Also search across broad range of candidate columns around that area (Columns 12 to 25: L to Y)
+    stat_candidate_cols.extend(range(12, 26))
+
+    unique_candidates = []
+    used_cols = [col_mapping.get("including"), col_mapping.get("drawings"), col_mapping.get("revfix"), col_mapping.get("vs")]
+    for c in stat_candidate_cols:
+        if c > 0 and c not in unique_candidates and c not in used_cols:
+            unique_candidates.append(c)
+
+    best_stat_col = unique_candidates[0] if unique_candidates else 18
+    best_score = -1
+
+    for c in unique_candidates:
+        score = 0
+        for test_r in range(header_row_idx + 1, min(ws.max_row + 1, header_row_idx + 60)):
+            inc_val = str(ws.cell(row=test_r, column=col_mapping["including"]).value or "").strip()
+            inc_clean = re.sub(r'\s+', '', inc_val)
+            if inc_clean.isdigit() and len(inc_clean) >= 5:
+                cell_val = str(ws.cell(row=test_r, column=c).value or "").strip()
+                if cell_val != "":
+                    score += 1
+                    cell_upper = cell_val.upper()
+                    if cell_upper == "FR":
+                        score += 10
+                    elif cell_upper.isalpha() and len(cell_upper) <= 5:
+                        score += 5
+        if score > best_score:
+            best_score = score
+            best_stat_col = c
+
+    col_mapping["stat"] = best_stat_col
 
     # 4. Extract rows
     start_row = header_row_idx + 1
