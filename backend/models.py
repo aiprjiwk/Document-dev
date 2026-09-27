@@ -78,6 +78,33 @@ class OQHMITemplateMaintenance(Base):
             f"expected_header_title='{self.expected_header_title}')>"
         )
 
+
+class SupplierOEMComponent(Base):
+    """
+    SQLAlchemy Model representing the 'supplier_oem_components' table.
+    Stores OEM components, manufacturer info, descriptions, and PDF document statuses.
+    """
+    __tablename__ = "supplier_oem_components"
+
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    manufacturer = Column(String, nullable=True, index=True)
+    material_desc_en = Column(String, nullable=True)
+    material_desc_de = Column(String, nullable=True)
+    component_number = Column(String, nullable=True, index=True)
+    size_dimensions = Column(String, nullable=True)
+    manufacturer_part_no = Column(String, nullable=True, index=True)
+    d500 = Column(String, nullable=True)
+    pdf_filename = Column(String, nullable=True)
+    pdf_status = Column(String, default="Missing", nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=True)
+
+    def __repr__(self) -> str:
+        return (
+            f"<SupplierOEMComponent(id={self.id}, manufacturer='{self.manufacturer}', "
+            f"component_number='{self.component_number}', status='{self.pdf_status}')>"
+        )
+
+
 # Database helper functions
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "database", "app_database.db")
 

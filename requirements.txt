@@ -9,3 +9,5 @@ pyzbar
 winocr
 surya-ocr
 streamlit-option-menu
+sqlalchemy
+

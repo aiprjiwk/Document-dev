@@ -23,6 +23,10 @@ ocr_processing_log.csv
 Output/
 0_Data/
 dataset_images/
+OEM/*
+!OEM/XXXXX_Template_Overview sub-supplier documentation.xlsx
+!OEM/BOM OEM_20260926_154346.XLSX
+
 
 # OS Generated Files
 Thumbs.db

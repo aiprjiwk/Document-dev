@@ -8,8 +8,15 @@ import re
 import io
 import zipfile
 import os
+import glob
+import sqlite3
+import logging
 import importlib
 import datetime
+
+# Configure application logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("AppIWK")
 
 # Try to import zxingcpp (recommended as it has no external DLL requirements on Windows)
 try:
@@ -333,21 +340,32 @@ def render_home_page():
     recent_docs = []
     
     try:
+        # Auto-initialize database tables if needed
+        try:
+            import backend.audit_service as audit_service
+            audit_service.init_db()
+        except Exception:
+            pass
+
         if os.path.exists(db_path):
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             
-            # Count docs
-            cursor.execute("SELECT COUNT(*) FROM document_master")
-            total_docs = cursor.fetchone()[0]
-            
-            # Count fields
-            cursor.execute("SELECT COUNT(*) FROM extracted_fields")
-            total_fields = cursor.fetchone()[0]
-            
-            # Get latest 5 docs
-            cursor.execute("SELECT filename, uploaded_at, status FROM document_master ORDER BY uploaded_at DESC LIMIT 5")
-            recent_docs = cursor.fetchall()
+            # Check if document_master exists
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='document_master'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM document_master")
+                row = cursor.fetchone()
+                total_docs = row[0] if row else 0
+                
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='extracted_fields'")
+                if cursor.fetchone():
+                    cursor.execute("SELECT COUNT(*) FROM extracted_fields")
+                    row_f = cursor.fetchone()
+                    total_fields = row_f[0] if row_f else 0
+                    
+                cursor.execute("SELECT filename, uploaded_at, status FROM document_master ORDER BY uploaded_at DESC LIMIT 5")
+                recent_docs = cursor.fetchall()
             
             conn.close()
     except Exception as db_err:
@@ -1373,7 +1391,7 @@ def render_iwk_certificate_page():
                 
     if st.session_state.processed_zip:
         if len(st.session_state.processed_zip) < 100:
-            status_placeholder.error("⚠️ ไม่พบไฟล์ PDF ที่ตรงกับ Part No. ใน BOM เลยครับ ทำให้ไม่มีไฟล์ใน ZIP")
+            status_placeholder.error("⚠️ No matching PDF files found for Part No. in BOM. ZIP archive is empty.")
         elif st.session_state.missing_files:
             status_placeholder.warning("⚠️ Done (some missing)")
         else:
@@ -8306,7 +8324,347 @@ def render_user_management_page():
                             else:
                                 st.error(msg)
 
+def render_supplier_oem_page():
+    st.title("📦 Supplier OEM Document & BOM Management")
+    st.markdown("Manage OEM sub-supplier documentation, verify PDF manuals, and match with machine BOM component records.")
+    st.markdown("---")
+    
+    # Import OEM service
+    try:
+        import backend.oem_service as oem_service
+    except Exception as e:
+        st.error(f"Failed to load backend.oem_service: {e}")
+        return
+
+    # Tabs layout
+    tab_dashboard, tab_maintenance, tab_purchasing = st.tabs([
+        "📊 OEM BOM Dashboard & PDF Matcher", 
+        "🛠️ Document Repository Maintenance", 
+        "✉️ Missing Files Request to Purchasing"
+    ])
+    
+    # Session state initialization
+    if "oem_data" not in st.session_state:
+        st.session_state["oem_data"] = None
+    if "oem_stats" not in st.session_state:
+        st.session_state["oem_stats"] = None
+        
+    with tab_dashboard:
+        workspace_oem = os.path.join(os.path.dirname(__file__), "OEM")
+        source_dir = workspace_oem if os.path.exists(workspace_oem) else r"C:\Users\DELL\Desktop\Test\OEM"
+        filter_d500_check = True
+
+        st.subheader("⚙️ Machine Setup & Processing")
+        
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            machine_type_input = st.text_input("Machine Type / Model Prefix:", value="5XXXX IWK TZC", key="oem_machine_type_input")
+        with c2:
+            st.write("&nbsp;")
+            run_match_btn = st.button("🚀 Scan & Match PDFs", type="primary", use_container_width=True, key="btn_run_oem_scan")
+            
+        uploaded_bom = st.file_uploader("Or upload new OEM BOM Excel file (.xlsx / .xlsb):", type=["xlsx", "xlsb"], key="oem_uploader_excel")
+        
+        # Trigger scan and processing
+        if run_match_btn or (st.session_state["oem_data"] is None and os.path.exists(source_dir)):
+            try:
+                with st.spinner("Reading BOM Excel data and scanning PDF manuals..."):
+                    # Find BOM file in folder if not uploaded
+                    bom_file = None
+                    if uploaded_bom:
+                        bom_file = uploaded_bom
+                    elif os.path.exists(source_dir):
+                        found_excels = glob.glob(os.path.join(source_dir, "*.xlsx")) + glob.glob(os.path.join(source_dir, "*.XLSX"))
+                        if found_excels:
+                            bom_file = found_excels[0]
+                            
+                    if bom_file:
+                        df_bom = oem_service.parse_oem_bom_excel(bom_file, require_d500_filter=filter_d500_check)
+                        df_matched, stats = oem_service.scan_and_match_oem_pdfs(source_dir, df_bom)
+                        
+                        st.session_state["oem_data"] = df_matched
+                        st.session_state["oem_stats"] = stats
+                        
+                        # Sync to SQLite database
+                        try:
+                            oem_service.sync_oem_to_sqlite(df_matched)
+                            st.toast("Synced records to SQLite database successfully!", icon="✅")
+                        except Exception as dbe:
+                            st.warning(f"Failed to sync to SQLite: {dbe}")
+                    else:
+                        st.warning(f"No OEM BOM file (.xlsx) found in folder {source_dir}. Please upload a file or verify the directory path.")
+            except Exception as ex:
+                st.error(f"Processing error: {ex}")
+
+        # Render Dashboard Metrics & Table if data loaded
+        if st.session_state["oem_data"] is not None:
+            df_res = st.session_state["oem_data"]
+            stats = st.session_state["oem_stats"] or {}
+            
+            st.markdown("---")
+            m1, m2, m3 = st.columns(3)
+            m1.metric("📦 Total Components", f"{stats.get('total', len(df_res)):,} items")
+            m2.metric("✅ Documentation Matched", f"{stats.get('matched', 0):,} items")
+            m3.metric("⚠️ Missing Documentation", f"{stats.get('missing', 0):,} items", delta=f"-{stats.get('missing', 0)}", delta_color="inverse")
+            
+            st.markdown("---")
+            st.subheader("📋 Supplier OEM Components List")
+            
+            # Filtering
+            f1, f2, f3 = st.columns([2, 2, 3])
+            with f1:
+                manufacturers = ["(All)"] + sorted(list(set([str(x) for x in df_res["manufacturer"].unique() if str(x).strip()])))
+                selected_mfg = st.selectbox("Filter by Manufacturer:", manufacturers, key="filter_oem_mfg")
+            with f2:
+                status_opts = ["(All)", "Matched", "Missing"]
+                selected_status = st.selectbox("Filter by Status:", status_opts, key="filter_oem_status")
+            with f3:
+                search_query = st.text_input("🔍 Search (Part No. / Component No. / Description):", key="search_oem_query")
+                
+            filtered_df = df_res.copy()
+            if selected_mfg != "(All)":
+                filtered_df = filtered_df[filtered_df["manufacturer"] == selected_mfg]
+            if selected_status == "Matched":
+                filtered_df = filtered_df[filtered_df["pdf_status"] == "Matched"]
+            elif selected_status == "Missing":
+                filtered_df = filtered_df[filtered_df["pdf_status"] == "Missing"]
+            if search_query:
+                q = search_query.lower()
+                filtered_df = filtered_df[
+                    filtered_df["manufacturer"].astype(str).str.lower().str.contains(q) |
+                    filtered_df["manufacturer_part_no"].astype(str).str.lower().str.contains(q) |
+                    filtered_df["component_number"].astype(str).str.lower().str.contains(q) |
+                    filtered_df["material_desc_en"].astype(str).str.lower().str.contains(q)
+                ]
+                
+            display_cols = [
+                "manufacturer", "material_desc_en", "component_number", 
+                "size_dimensions", "manufacturer_part_no", "pdf_status", "pdf_filename"
+            ]
+            display_df = filtered_df[display_cols].copy()
+
+            def highlight_missing(row):
+                if str(row.get("pdf_status", "")).strip().lower() == "missing":
+                    return ["background-color: #fef08a; color: #1f2937; font-weight: 500;"] * len(row)
+                return [""] * len(row)
+
+            styled_df = display_df.style.apply(highlight_missing, axis=1)
+            st.dataframe(
+                styled_df, 
+                use_container_width=True,
+                height=400
+            )
+            
+            # Export & Save As Section
+            st.markdown("---")
+            st.markdown("### 💾 Export & Save As Sub-Supplier Documentation")
+            
+            # Template detection status
+            tpl_path_found = oem_service.find_oem_template_path(source_dir)
+            if tpl_path_found:
+                st.success(f"✅ Template loaded: `{os.path.basename(tpl_path_found)}` (A4 Landscape, fit to 1 page width, ready for printing)")
+            else:
+                st.info("ℹ️ Using standard template structure (A4 Landscape, 1 page width)")
+
+            save_prefix = machine_type_input.split()[0] if machine_type_input else "5XXXX"
+            default_save_as = f"{save_prefix}_Overview sub-supplier documentation.xlsx"
+            
+            c_save1, c_save2 = st.columns([3, 2])
+            with c_save1:
+                custom_save_name = st.text_input("Save As Filename (.xlsx):", value=default_save_as, key="oem_custom_save_as_name")
+            with c_save2:
+                st.write("&nbsp;")
+                # Generate Overview Excel buffer from template
+                try:
+                    overview_excel_bytes = oem_service.generate_overview_excel_buffer(filtered_df, machine_type_input, tpl_path_found)
+                    st.download_button(
+                        label=f"💾 Save As: {custom_save_name}",
+                        data=overview_excel_bytes,
+                        file_name=custom_save_name,
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        type="primary",
+                        use_container_width=True,
+                        key="btn_save_as_overview_excel"
+                    )
+                except Exception as ex_excel:
+                    st.error(f"Error generating Excel file: {ex_excel}")
+
+            st.markdown("#### 📦 Additional Export Options")
+            d_col1, d_col2 = st.columns(2)
+            with d_col1:
+                csv_bytes = filtered_df.to_csv(index=False).encode("utf-8-sig")
+                st.download_button(
+                    "📥 Download Raw Data (CSV)", 
+                    data=csv_bytes, 
+                    file_name="Supplier_OEM_BOM_Matched.csv", 
+                    mime="text/csv", 
+                    use_container_width=True, 
+                    key="btn_dl_oem_csv"
+                )
+            with d_col2:
+                if st.button("📦 Generate Full Documentation Package (.ZIP)", use_container_width=True, key="btn_gen_zip_pkg"):
+                    with st.spinner("Packaging Overview Excel and matching PDF manuals into ZIP archive..."):
+                        try:
+                            zip_pkg_bytes = oem_service.build_documentation_zip_package(source_dir, filtered_df, machine_type_input, tpl_path_found)
+                            st.download_button(
+                                label=f"⬇️ Download {save_prefix}_Sub_Supplier_Documentation_Package.zip",
+                                data=zip_pkg_bytes,
+                                file_name=f"{save_prefix}_Sub_Supplier_Documentation_Package.zip",
+                                mime="application/zip",
+                                type="primary",
+                                use_container_width=True,
+                                key="btn_dl_zip_pkg_ready"
+                            )
+                        except Exception as ex_zip:
+                            st.error(f"Failed to generate ZIP archive: {ex_zip}")
+
+    with tab_maintenance:
+        st.subheader("🛠️ OEM Document Repository Maintenance")
+        st.write("Create or delete supplier folders, upload PDF manuals into folders, and manage existing files.")
+        
+        folders_list = oem_service.list_oem_folders(source_dir)
+
+        # 1. Folder Management (Add / Delete)
+        st.markdown("#### 📁 1. Supplier Folder Management")
+        f_col1, f_col2 = st.columns(2)
+        with f_col1:
+            st.markdown("**➕ Add New Supplier Folder**")
+            new_f_name = st.text_input("New Folder Name:", key="txt_new_folder_name", placeholder="e.g. DANFOSS, PILZ, FESTO_NEW")
+            if st.button("➕ Create Folder", use_container_width=True, key="btn_create_new_folder"):
+                if new_f_name.strip():
+                    ok, msg = oem_service.create_oem_folder(source_dir, new_f_name)
+                    if ok:
+                        st.success(msg)
+                        st.rerun()
+                    else:
+                        st.error(msg)
+                else:
+                    st.warning("Please enter a folder name before creating.")
+
+        with f_col2:
+            st.markdown("**🗑️ Delete Supplier Folder**")
+            del_folder_sel = st.selectbox("Select folder to delete:", ["(Select folder)"] + folders_list, key="sel_del_folder")
+            if del_folder_sel != "(Select folder)":
+                if st.button(f"🗑️ Confirm Delete Folder '{del_folder_sel}'", type="secondary", use_container_width=True, key="btn_confirm_del_folder"):
+                    ok, msg = oem_service.delete_oem_folder(source_dir, del_folder_sel)
+                    if ok:
+                        st.success(msg)
+                        st.rerun()
+                    else:
+                        st.error(msg)
+
+        st.markdown("---")
+
+        # 2. Upload / Drop PDF Files into selected folder
+        st.markdown("#### 📤 2. Upload / Drop PDF Manuals")
+        up_c1, up_c2 = st.columns([1, 2])
+        with up_c1:
+            selected_up_folder = st.selectbox(
+                "Select Destination Folder:", 
+                folders_list if folders_list else ["(No folders found)"], 
+                key="sel_upload_target_folder"
+            )
+        with up_c2:
+            dropped_pdfs = st.file_uploader(
+                "Drop or select PDF files here (Drag & Drop):", 
+                type=["pdf", "fdf"], 
+                accept_multiple_files=True, 
+                key="uploader_maint_pdfs"
+            )
+
+        if dropped_pdfs and selected_up_folder and selected_up_folder != "(No folders found)":
+            if st.button(f"💾 Save {len(dropped_pdfs)} PDF file(s) into '{selected_up_folder}'", type="primary", use_container_width=True, key="btn_save_dropped_pdfs"):
+                success_count = 0
+                for pf in dropped_pdfs:
+                    ok, msg = oem_service.save_uploaded_oem_file(source_dir, selected_up_folder, pf.name, pf.getvalue())
+                    if ok:
+                        success_count += 1
+                st.success(f"✅ Successfully saved {success_count} PDF file(s) into '{selected_up_folder}' (converted '@' to '_' automatically)")
+                st.rerun()
+
+        st.markdown("---")
+
+        # 3. View & Delete PDF Files in Folder
+        st.markdown("#### 📄 3. Documents in Selected Folder & File Deletion")
+        if selected_up_folder and selected_up_folder != "(No folders found)":
+            current_files = oem_service.list_oem_files_in_folder(source_dir, selected_up_folder)
+            st.write(f"Folder **{selected_up_folder}** contains **{len(current_files)}** file(s):")
+            if current_files:
+                df_files = pd.DataFrame(current_files)[['filename', 'size_kb', 'modified']]
+                df_files.columns = ['PDF Filename', 'File Size', 'Last Modified']
+                st.dataframe(df_files, use_container_width=True, height=220)
+
+                # Delete selected files
+                fnames = [f['filename'] for f in current_files]
+                files_to_delete = st.multiselect("Select PDF files to delete:", fnames, key="maint_multisel_del_files")
+                if files_to_delete:
+                    if st.button(f"🗑️ Delete Selected File(s) ({len(files_to_delete)})", type="secondary", key="btn_confirm_del_files"):
+                        del_cnt = 0
+                        for f in current_files:
+                            if f['filename'] in files_to_delete:
+                                ok, msg = oem_service.delete_oem_file(f['full_path'])
+                                if ok:
+                                    del_cnt += 1
+                        st.success(f"✅ Successfully deleted {del_cnt} file(s)")
+                        st.rerun()
+            else:
+                st.info(f"Folder '{selected_up_folder}' has no PDF documents.")
+
+        st.markdown("---")
+        with st.expander("🧹 Clean Temporary Junk Files (Thumbs.db)"):
+            if st.button("🧹 Remove Junk Files (Thumbs.db)", use_container_width=True, key="btn_clean_thumbs_maint"):
+                cnt = oem_service.clean_unwanted_files(source_dir)
+                st.success(f"Removed {cnt} temporary OS files (Thumbs.db) successfully.")
+
+    with tab_purchasing:
+        st.subheader("✉️ Missing Documentation Request to Purchasing Department")
+        st.write("Summarizes all OEM components without PDF documentation for procurement follow-up.")
+        
+        if st.session_state["oem_data"] is not None:
+            missing_df = oem_service.generate_missing_purchasing_report(st.session_state["oem_data"])
+            st.write(f"Total missing documentation items: **{len(missing_df):,}** items:")
+            
+            # Clean up old session state key if present from previous sessions
+            if "txt_area_email" in st.session_state:
+                try:
+                    del st.session_state["txt_area_email"]
+                except Exception:
+                    pass
+
+            display_missing = missing_df.rename(columns={
+                "manufacturer": "Manufacturer / Supplier",
+                "manufacturer_part_no": "Manufacturer Part No.",
+                "component_number": "Component Number",
+                "material_desc_en": "Description (EN)",
+                "size_dimensions": "Size / Dimensions"
+            })
+            st.dataframe(display_missing, use_container_width=True, height=300)
+            
+            st.markdown("#### 📧 Draft Email Template:")
+            email_text = (
+                f"Dear Purchasing Department,\n\n"
+                f"Please find below the list of OEM component manuals and spec sheets currently missing in our documentation system "
+                f"for coordination with suppliers / manufacturers:\n\n"
+                f"• Total missing documentation items: {len(missing_df)} items\n\n"
+                f"Key component examples:\n"
+            )
+            for i, (_, r) in enumerate(missing_df.head(10).iterrows(), 1):
+                mfg = r.get('manufacturer', '') or 'Unknown Supplier'
+                pno = r.get('manufacturer_part_no', '') or '-'
+                cno = r.get('component_number', '') or '-'
+                desc = r.get('material_desc_en', '') or '-'
+                email_text += f"{i}. [{mfg}] Part No: {pno} | Comp: {cno} ({desc})\n"
+                
+            email_text += "\nPlease kindly request the corresponding PDF manuals/spec sheets from the suppliers and forward them to us so we can update the repository.\n\nThank you.\nBest regards,"
+            
+            st.text_area("Email Content:", value=email_text, height=220, key="txt_area_email_en")
+            st.info("💡 You can copy the text above to email the Purchasing Department directly.")
+        else:
+            st.warning("Please run 'Scan & Match PDFs' in the first tab to process records.")
+
 def main():
+
+
     st.set_page_config(page_title="PDF OCR Splitter & Tools", layout="wide")
     
     # Initialize authentication DB in background (preserved for future development)
@@ -8466,8 +8824,8 @@ def main():
         
         selected_tool = None
         if page == "Document Tool Center":
-            dtc_tools = ["OCR & AI (from QC)", "Advanced OCR Adjustment", "IWK Certificate", "ETK Verification", "Calibration Certificate", "Fault Assistance", "Machine Configuration System", "IQOQDQ"]
-            dtc_icons = ["robot", "stars", "award", "check2-all", "patch-check", "wrench", "gear", "clipboard-check"]
+            dtc_tools = ["OCR & AI (from QC)", "Advanced OCR Adjustment", "IWK Certificate", "ETK Verification", "Calibration Certificate", "Fault Assistance", "Machine Configuration System", "IQOQDQ", "Supplier OEM"]
+            dtc_icons = ["robot", "stars", "award", "check2-all", "patch-check", "wrench", "gear", "clipboard-check", "truck"]
                 
             st.markdown("<hr style='margin: 10px 0; border-color: #1e3a5f;'>", unsafe_allow_html=True)
             selected_tool = option_menu(
@@ -8570,6 +8928,8 @@ def main():
             render_operating_manual_page()
         elif selected_tool == "IQOQDQ":
             render_iqoqdq_page(sub_section=selected_iqoqdq_sub or "📐 DQ")
+        elif selected_tool == "Supplier OEM":
+            render_supplier_oem_page()
         elif selected_tool:
             st.title(f"🛠️ {selected_tool}")
             st.info(f"You have selected the **{selected_tool}** from the Document Tool Center. Development for this tool is in progress.")
