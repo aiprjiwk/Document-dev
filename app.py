@@ -5049,7 +5049,7 @@ STANDARD_MACHINE_TYPES = [
 ]
 
 def render_operating_manual_page():
-    st.title("⚙️ Machine Configuration System")
+    st.title("⚙️ Function description machine")
     st.subheader("User-Managed Machine Database, Project Configuration, Multi-Sheet Excel Export & History")
     
     import importlib
@@ -6777,16 +6777,46 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                             rc_m2.metric("✅ Maintained & Matched", f"{recheck_metrics['maintained_count']} Screens")
                             rc_m3.metric("⚠️ Unmaintained / Missing", f"{recheck_metrics['missing_maint_count']} Screens")
 
-                            st.dataframe(recheck_df, use_container_width=True, hide_index=True)
+                            # Highlight Unmaintained / Missing rows in yellow
+                            def highlight_recheck(row):
+                                st_val = str(row.get("Template Maintenance Status", "")).strip().lower()
+                                if "unmaintained" in st_val or "missing" in st_val:
+                                    return ["background-color: #fef08a; color: #1f2937; font-weight: 500;"] * len(row)
+                                elif "skipped" in st_val or "duplicate" in st_val:
+                                    return ["background-color: #f8fafc; color: #64748b;"] * len(row)
+                                return [""] * len(row)
+
+                            styled_recheck_df = recheck_df.style.apply(highlight_recheck, axis=1)
+                            st.dataframe(styled_recheck_df, use_container_width=True, hide_index=True)
+
+                            # Download Excel button for Existing Recheck table (with yellow highlighting on missing rows)
+                            try:
+                                recheck_xl_bytes = oq_hmi_svc.generate_existing_recheck_excel(recheck_df, selected_hmi_machine)
+                            except Exception:
+                                ex_recheck_buf = io.BytesIO()
+                                with pd.ExcelWriter(ex_recheck_buf, engine='openpyxl') as writer:
+                                    recheck_df.to_excel(writer, sheet_name="Existing Recheck", index=False)
+                                recheck_xl_bytes = ex_recheck_buf.getvalue()
+
+                            st.download_button(
+                                label=f"📊 Download Existing Recheck Report (.xlsx)",
+                                data=recheck_xl_bytes,
+                                file_name=f"{selected_hmi_machine}_Existing_Recheck_Template_Maintenance.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                type="secondary",
+                                use_container_width=True,
+                                key="oq_hmi_btn_dl_recheck_excel"
+                            )
+
                             if recheck_metrics['missing_maint_count'] > 0:
                                 st.warning(f"💡 **Maintenance Alert:** {recheck_metrics['missing_maint_count']} screen(s) are missing from the template library for `{selected_hmi_machine}`. Switch to the '⚙️ Machine Type & Template Maintenance' tab to add them.")
                         except Exception as ex_rc:
                             st.info("💡 Upload screenshots to run live Existing Recheck against Template Library.")
 
                     # Window 2: Sequence Reordering via Excel Checklist Tool
-                    with st.expander("📤 2. นำเข้าไฟล์ Excel Checklist ลำดับใหม่ (Sequence Control)", expanded=True):
-                        st.markdown("##### 📤 2. นำเข้าไฟล์ Excel Checklist ลำดับใหม่")
-                        st.caption("💡 **วิธีใช้ Checklist Tool:** 1. กดดาวน์โหลดไฟล์ Excel (.xlsm) 2. เปิดไฟล์ ติ๊ก Checkbox เพื่อรับหมายเลขลำดับ (คอลัมน์ C) 3. อัปโหลดไฟล์กลับเพื่อจัดลำดับภาพสำหรับการ insert ในแม่แบบ Word")
+                    with st.expander("📤 2. Excel Checklist & Sequence Reordering Tool", expanded=True):
+                        st.markdown("##### 📤 2. Excel Checklist & Custom Sequence Control")
+                        st.caption("💡 **Checklist Tool Guide:** 1. Download the Excel Checklist (.xlsm). 2. Open file and check checkboxes to assign sequence numbers (Column C). 3. Upload the file back to apply custom image sequence into the Word master template.")
 
                         try:
                             current_order = st.session_state.get("oq_hmi_custom_image_order", all_fnames)
@@ -6801,7 +6831,7 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                             xl_col1, xl_col2 = st.columns(2)
                             
                             with xl_col1:
-                                st.markdown("###### 📥 1. ดาวน์โหลดไฟล์ Excel Checklist Tool")
+                                st.markdown("###### 📥 1. Download Excel Checklist Tool")
                                 export_rows = []
                                 for idx, fn in enumerate(current_order, start=1):
                                     info = next((item for item in ocr_map_preview if item['fname'] == fn), {})
@@ -6812,7 +6842,7 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                                     export_rows.append({
                                         'Checkbox': '',
                                         'Select': '',
-                                        'ลำดับที่เลือก': '',
+                                        'Selected Sequence': '',
                                         'File Name': fn,
                                         'Function Code': fc_code,
                                         'Header Title': title,
@@ -6822,19 +6852,19 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                                 xl_bytes, xl_fname, xl_mime = oq_hmi_svc.generate_checklist_xlsm(export_rows)
 
                                 st.download_button(
-                                    label=f"📥 ดาวน์โหลด Checklist Tool ({xl_fname})",
+                                    label=f"📥 Download Checklist Tool ({xl_fname})",
                                     data=xl_bytes,
                                     file_name=xl_fname,
                                     mime=xl_mime,
                                     use_container_width=True,
                                     key="oq_hmi_btn_dl_seq_excel"
                                 )
-                                st.caption("✨ *ไฟล์ Excel มี Form Control Checkbox & VBA Macro สำหรับรันหมายเลข 1, 2, 3... n ตามลำดับการติ๊ก*")
+                                st.caption("✨ *The Excel file includes Form Control Checkboxes & VBA Macro to automatically sequence checked items as 1, 2, 3... n in order.*")
 
                             with xl_col2:
-                                st.markdown("###### 📤 2. นำเข้าไฟล์ Excel Checklist ลำดับใหม่")
+                                st.markdown("###### 📤 2. Upload Sequenced Excel Checklist")
                                 uploaded_seq_xl = st.file_uploader(
-                                    "อัปโหลดไฟล์ Excel Checklist ที่เลือกและติ๊กแล้ว (*.xlsm, *.xlsx, *.xls)",
+                                    "Upload checked & sequenced Excel Checklist (*.xlsm, *.xlsx, *.xls)",
                                     type=["xlsm", "xlsx", "xls"],
                                     key="oq_hmi_uploader_seq_excel"
                                 )
@@ -6848,13 +6878,13 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                                                 st.session_state["oq_hmi_custom_image_order"] = list(final_xl_order)
                                                 st.rerun()
 
-                                            st.success(f"📋 **ผลการอ่าน Checklist:** อ่านลำดับตามคอลัมน์ C สำเร็จ พบภาพที่เลือกไว้ `{sel_count}` ภาพ (พร้อมใช้งานเรียบร้อยแล้ว)")
+                                            st.success(f"📋 **Checklist Parsed:** Successfully extracted custom sequence from Column C for `{sel_count}` image(s) (Ready for processing).")
                                     except Exception as ex_xl:
-                                        st.error(f"❌ ไม่สามารถอ่านไฟล์ Excel ได้: {str(ex_xl)}")
+                                        st.error(f"❌ Unable to parse Excel file: {str(ex_xl)}")
 
                             # Status Bar
                             st.markdown("---")
-                            st.info("💡 **สถานะลำดับภาพ:** ระบบนำลำดับภาพตามหมายเลขใน คอลัมน์ C จากไฟล์ Excel มาใช้งานอัตโนมัติสำหรับการ Generate OQ HMI Word และ Audit Log")
+                            st.info("💡 **Sequence Status:** Custom sequence from Column C of the uploaded Excel checklist is active for Word generation and Audit Log output.")
                         except Exception as ex_xl_outer:
                             st.info("💡 Upload screenshots to manage sequence control via Excel Checklist.")
 
@@ -6902,7 +6932,7 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                     if not image_input_hmi:
                         st.error("❌ Please select or upload screenshot images first.")
                     else:
-                        with st.spinner(f"นำข้อมูลจาก 🔍 Existing Recheck & Sequence Control มาเปิดไฟล์ย่อยใน '{selected_hmi_machine}', แทรกรูปภาพ และประกอบเข้ากับแม่แบบ Word หลัก..."):
+                        with st.spinner(f"Applying data from Existing Recheck & Sequence Control to populate sub-templates for '{selected_hmi_machine}', insert screenshots, and compile master Word template..."):
                             try:
                                 # Ensure custom_order is derived from uploaded Excel sequence bytes if present
                                 uploaded_xl_file = st.session_state.get("oq_hmi_uploader_seq_excel")
@@ -7766,7 +7796,7 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
         
     elif "Rename" in sub_section or "Tag" in sub_section:
         st.markdown("### 🏷️ Rename Tag & Custom Document Properties Tool")
-        st.caption("Batch update Custom Document Properties (Copyright, Version, Machine, Order, Serial no., Designation), Document History dates, and automated file renaming.")
+        st.caption("Batch update Custom Document Properties (Copyright, Version, Machine, Order, Serial no.), Document History dates, and automated file renaming.")
         
         import backend.rename_tag_service as rename_tag_svc
         try:
@@ -7797,9 +7827,9 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
 
         st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
 
-        # Step 2: 7 Data Input Fields
-        st.markdown("##### 📝 2. Enter Document Properties & Date (7 Input Fields)")
-        st.caption("Fill in the 6 Custom Document Properties and the 7th Date parameter to update across all files.")
+        # Step 2: 6 Data Input Fields
+        st.markdown("##### 📝 2. Enter Document Properties & Date (6 Input Fields)")
+        st.caption("Fill in the 5 Custom Document Properties and the 6th Date parameter to update across all files.")
 
         default_today_str = datetime.datetime.now().strftime("%d-%b-%y")
 
@@ -7839,19 +7869,12 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                 key="rt_val_machine",
                 help="Custom property 'Machine'"
             )
-            val_bezeichnung = st.text_input(
-                "6. Designation",
-                value="Cartoning machine, Tube filling machine, Filling platform",
-                key="rt_val_bezeichnung",
-                help="Custom property 'Designation' (Bezeichnung)"
+            val_date = st.text_input(
+                "6. Date (Document History & Filename)",
+                value=default_today_str,
+                key="rt_val_date",
+                help="Date format (e.g. 22-Sep-26). Replaces DD-MMM-YYYY in Document History and date in filename."
             )
-
-        val_date = st.text_input(
-            "7. Date (Document History & Filename)",
-            value=default_today_str,
-            key="rt_val_date",
-            help="Input 7: Date format (e.g. 22-Sep-26). Replaces DD-MMM-YYYY in Document History and date in filename."
-        )
 
         # Compute ISO date & doc date preview
         iso_date_preview, doc_date_preview = rename_tag_svc.parse_user_date(val_date)
@@ -7898,7 +7921,7 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                         order_val=val_order,
                         baunummer_val=val_baunummer,
                         date_val=val_date,
-                        bezeichnung_val=val_bezeichnung
+                        bezeichnung_val=""
                     )
 
                     st.session_state["rename_tag_last_results"] = results_list
@@ -7961,8 +7984,125 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                         use_container_width=True
                     )
         
+    elif "Convert" in sub_section or "PDF" in sub_section:
+        st.markdown("### 📄 Convert Word to PDF Tool")
+        st.caption("Batch convert Word (.docx, .doc) files to PDF format, pre-processing text to Black (except files containing 'Plan-Report' in filename).")
+
+        import backend.convert_pdf_service as convert_pdf_svc
+        try:
+            convert_pdf_svc = importlib.reload(convert_pdf_svc)
+        except Exception:
+            pass
+
+        # Step 1: Input Word Files
+        st.markdown("##### 📁 1. Target Word Document File(s) Selection")
+        st.caption("Upload Word (.docx, .doc) files directly to convert them into PDF files.")
+
+        uploaded_word_pdf_files = st.file_uploader(
+            "Upload Target Word Files (*.docx, *.doc)",
+            type=["docx", "doc"],
+            accept_multiple_files=True,
+            key="convert_pdf_file_uploader",
+            help="Insert one or multiple Word document files to convert into PDF"
+        )
+        selected_pdf_files_to_process = []
+        if uploaded_word_pdf_files:
+            for uf in uploaded_word_pdf_files:
+                selected_pdf_files_to_process.append({
+                    "filename": uf.name,
+                    "bytes": uf.getvalue(),
+                    "source_path": None
+                })
+            st.caption(f"✅ Loaded `{len(uploaded_word_pdf_files)}` file(s) for conversion.")
+
+        force_black_opt = True
+
+        st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+
+        # Step 2: Filename Preview Table
+        st.markdown("##### 🔍 2. Conversion Preview")
+        if selected_pdf_files_to_process:
+            preview_rows = []
+            for fitem in selected_pdf_files_to_process:
+                fn = fitem["filename"]
+                pdf_fn = convert_pdf_svc.compute_pdf_filename(fn)
+                is_exempt = convert_pdf_svc.is_plan_report_filename(fn)
+                style_status = "🎨 Original Formatting (Plan-Report Exempt)" if is_exempt else "⚫ Force Black Text"
+                preview_rows.append({
+                    "Original Word File": fn,
+                    "Output PDF File": pdf_fn,
+                    "Text Style Rule": style_status
+                })
+            st.dataframe(pd.DataFrame(preview_rows), use_container_width=True, hide_index=True)
+        else:
+            st.info("💡 Please upload at least one Word file to preview conversion.")
+
+        st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+
+        # Step 3: Convert Action Button
+        col_cpdf1, col_cpdf2 = st.columns([1.5, 2])
+        with col_cpdf1:
+            btn_convert_pdf = st.button("⚡ Convert to PDF & Generate Downloads", type="primary", use_container_width=True, key="cpdf_btn_convert")
+
+        if btn_convert_pdf:
+            if not selected_pdf_files_to_process:
+                st.error("❌ Please upload or select at least one Word file.")
+            else:
+                with st.spinner(f"Converting {len(selected_pdf_files_to_process)} Word document(s) to PDF..."):
+                    pdf_results = convert_pdf_svc.process_batch_convert_pdf(
+                        file_items=selected_pdf_files_to_process,
+                        force_black_text=force_black_opt
+                    )
+                    st.session_state["convert_pdf_last_results"] = pdf_results
+                    st.success(f"🎉 **Successfully Converted {len(pdf_results)} File(s) to PDF!**")
+
+        # Step 4: Download Converted Files & ZIP
+        if "convert_pdf_last_results" in st.session_state and st.session_state["convert_pdf_last_results"]:
+            pdf_res = st.session_state["convert_pdf_last_results"]
+            st.markdown("##### 📥 4. Converted PDF Files & Downloads")
+
+            # Download All as ZIP button
+            valid_pdfs = [item for item in pdf_res if item.get("pdf_bytes")]
+            if valid_pdfs:
+                zip_io = io.BytesIO()
+                with zipfile.ZipFile(zip_io, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+                    for item in valid_pdfs:
+                        zf.writestr(item["pdf_filename"], item["pdf_bytes"])
+                zip_io.seek(0)
+
+                st.download_button(
+                    label=f"📦 Download All Converted PDFs as ZIP ({len(valid_pdfs)} Files)",
+                    data=zip_io.getvalue(),
+                    file_name=f"Converted_PDFs_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
+                    mime="application/zip",
+                    key="cpdf_dl_all_zip",
+                    type="primary"
+                )
+
+                st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+
+            # Individual file download buttons
+            for idx, item in enumerate(pdf_res):
+                col_res1, col_res2 = st.columns([3, 2])
+                with col_res1:
+                    status_icon = "✅" if item["status"] == "OK" else "❌"
+                    exempt_str = " *(Plan-Report Exempt)*" if item.get("is_plan_report_exempt") else ""
+                    st.markdown(f"{status_icon} **Word:** `{item['original_filename']}` → **PDF:** `{item['pdf_filename']}`{exempt_str}")
+                with col_res2:
+                    if item.get("pdf_bytes"):
+                        st.download_button(
+                            label=f"📥 Download {item['pdf_filename']}",
+                            data=item["pdf_bytes"],
+                            file_name=item["pdf_filename"],
+                            mime="application/pdf",
+                            key=f"cpdf_dl_single_{idx}",
+                            use_container_width=True
+                        )
+                    else:
+                        st.error(f"Error: {item.get('status', 'Failed')}")
+        
     else:
-        tab_dq, tab_iq, tab_oq, tab_rt = st.tabs(["📐 DQ", "🔧 IQ", "⚡ OQ", "🏷️ Rename tag"])
+        tab_dq, tab_iq, tab_oq, tab_rt, tab_pdf = st.tabs(["📐 DQ", "🔧 IQ", "⚡ OQ", "🏷️ Rename tag", "📄 Convert PDF"])
         with tab_dq:
             st.markdown("### 📐 DQ — Design Qualification")
             st.info("💡 Ready for DQ steps.")
@@ -7975,6 +8115,9 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
         with tab_rt:
             st.markdown("### 🏷️ Rename Tag")
             st.info("💡 Ready for Rename tag steps.")
+        with tab_pdf:
+            st.markdown("### 📄 Convert PDF")
+            st.info("💡 Ready for Convert PDF steps.")
 
 
 
@@ -8356,10 +8499,14 @@ def render_supplier_oem_page():
 
         st.subheader("⚙️ Machine Setup & Processing")
         
-        c1, c2 = st.columns([3, 1])
+        c1, c2, c3 = st.columns([2, 2, 1])
         with c1:
             machine_type_input = st.text_input("Machine Type / Model Prefix:", value="5XXXX IWK TZC", key="oem_machine_type_input")
         with c2:
+            save_prefix = machine_type_input.split()[0] if machine_type_input else "5XXXX"
+            default_save_as = f"{save_prefix}_Overview sub-supplier documentation.xlsx"
+            custom_save_name = st.text_input("Save As Filename (.xlsx):", value=default_save_as, key="oem_custom_save_as_name")
+        with c3:
             st.write("&nbsp;")
             run_match_btn = st.button("🚀 Scan & Match PDFs", type="primary", use_container_width=True, key="btn_run_oem_scan")
             
@@ -8368,15 +8515,22 @@ def render_supplier_oem_page():
         # Trigger scan and processing
         if run_match_btn or (st.session_state["oem_data"] is None and os.path.exists(source_dir)):
             try:
-                with st.spinner("Reading BOM Excel data and scanning PDF manuals..."):
+                with st.spinner("Reading BOM Excel data and scanning PDF manuals in DataBase_Supplier..."):
                     # Find BOM file in folder if not uploaded
                     bom_file = None
                     if uploaded_bom:
                         bom_file = uploaded_bom
                     elif os.path.exists(source_dir):
-                        found_excels = glob.glob(os.path.join(source_dir, "*.xlsx")) + glob.glob(os.path.join(source_dir, "*.XLSX"))
-                        if found_excels:
-                            bom_file = found_excels[0]
+                        all_excels = glob.glob(os.path.join(source_dir, "*.xlsx")) + glob.glob(os.path.join(source_dir, "*.XLSX"))
+                        valid_excels = [
+                            f for f in all_excels 
+                            if not os.path.basename(f).startswith("~$") 
+                            and "template" not in os.path.basename(f).lower() 
+                            and "overview" not in os.path.basename(f).lower()
+                        ]
+                        if valid_excels:
+                            bom_excels = [f for f in valid_excels if "bom" in os.path.basename(f).lower()]
+                            bom_file = bom_excels[0] if bom_excels else valid_excels[0]
                             
                     if bom_file:
                         df_bom = oem_service.parse_oem_bom_excel(bom_file, require_d500_filter=filter_d500_check)
@@ -8402,10 +8556,11 @@ def render_supplier_oem_page():
             stats = st.session_state["oem_stats"] or {}
             
             st.markdown("---")
-            m1, m2, m3 = st.columns(3)
+            m1, m2, m3, m4 = st.columns(4)
             m1.metric("📦 Total Components", f"{stats.get('total', len(df_res)):,} items")
             m2.metric("✅ Documentation Matched", f"{stats.get('matched', 0):,} items")
             m3.metric("⚠️ Missing Documentation", f"{stats.get('missing', 0):,} items", delta=f"-{stats.get('missing', 0)}", delta_color="inverse")
+            m4.metric("📁 Repository PDF Manuals", f"{stats.get('total_pdfs_found', 0):,} files")
             
             st.markdown("---")
             st.subheader("📋 Supplier OEM Components List")
@@ -8441,6 +8596,9 @@ def render_supplier_oem_page():
                 "manufacturer", "material_desc_en", "component_number", 
                 "size_dimensions", "manufacturer_part_no", "pdf_status", "pdf_filename"
             ]
+            if "pdf_folder" in filtered_df.columns:
+                display_cols.append("pdf_folder")
+                
             display_df = filtered_df[display_cols].copy()
 
             def highlight_missing(row):
@@ -8466,28 +8624,20 @@ def render_supplier_oem_page():
             else:
                 st.info("ℹ️ Using standard template structure (A4 Landscape, 1 page width)")
 
-            save_prefix = machine_type_input.split()[0] if machine_type_input else "5XXXX"
-            default_save_as = f"{save_prefix}_Overview sub-supplier documentation.xlsx"
-            
-            c_save1, c_save2 = st.columns([3, 2])
-            with c_save1:
-                custom_save_name = st.text_input("Save As Filename (.xlsx):", value=default_save_as, key="oem_custom_save_as_name")
-            with c_save2:
-                st.write("&nbsp;")
-                # Generate Overview Excel buffer from template
-                try:
-                    overview_excel_bytes = oem_service.generate_overview_excel_buffer(filtered_df, machine_type_input, tpl_path_found)
-                    st.download_button(
-                        label=f"💾 Save As: {custom_save_name}",
-                        data=overview_excel_bytes,
-                        file_name=custom_save_name,
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        type="primary",
-                        use_container_width=True,
-                        key="btn_save_as_overview_excel"
-                    )
-                except Exception as ex_excel:
-                    st.error(f"Error generating Excel file: {ex_excel}")
+            # Generate Overview Excel buffer from template
+            try:
+                overview_excel_bytes = oem_service.generate_overview_excel_buffer(filtered_df, machine_type_input, tpl_path_found)
+                st.download_button(
+                    label=f"💾 Save As: {custom_save_name}",
+                    data=overview_excel_bytes,
+                    file_name=custom_save_name,
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    type="primary",
+                    use_container_width=True,
+                    key="btn_save_as_overview_excel"
+                )
+            except Exception as ex_excel:
+                st.error(f"Error generating Excel file: {ex_excel}")
 
             st.markdown("#### 📦 Additional Export Options")
             d_col1, d_col2 = st.columns(2)
@@ -8520,7 +8670,7 @@ def render_supplier_oem_page():
 
     with tab_maintenance:
         st.subheader("🛠️ OEM Document Repository Maintenance")
-        st.write("Create or delete supplier folders, upload PDF manuals into folders, and manage existing files.")
+        st.write("Create or delete supplier folders in `DataBase_Supplier`, upload PDF manuals, and manage existing files.")
         
         folders_list = oem_service.list_oem_folders(source_dir)
 
@@ -8609,6 +8759,64 @@ def render_supplier_oem_page():
                         st.rerun()
             else:
                 st.info(f"Folder '{selected_up_folder}' has no PDF documents.")
+
+        st.markdown("---")
+
+        # 4. Matched PDF Document Inspector & Quick PDF Preview / Download
+        st.markdown("#### 📄 4. Matched PDF Document Inspector & Preview")
+        if st.session_state.get("oem_data") is not None:
+            df_res_maint = st.session_state["oem_data"]
+            matched_items = df_res_maint[df_res_maint["pdf_status"] == "Matched"].copy()
+            if not matched_items.empty:
+                item_options = [
+                    f"[{r.get('manufacturer', '')}] Component #{r.get('component_number', '')} - {r.get('pdf_filename', '')}" 
+                    for _, r in matched_items.iterrows()
+                ]
+                sel_item_str = st.selectbox("Select Matched Component to View/Download PDF:", item_options, key="sel_matched_pdf_inspector")
+                if sel_item_str:
+                    sel_idx = item_options.index(sel_item_str)
+                    sel_row = matched_items.iloc[sel_idx]
+                    pdf_full_path = sel_row.get("pdf_full_path", "")
+                    
+                    if not pdf_full_path and sel_row.get("pdf_filename"):
+                        repo_folder = oem_service.get_oem_repo_dir(source_dir)
+                        pdf_full_path = os.path.join(repo_folder, sel_row.get("pdf_folder", ""), sel_row.get("pdf_filename"))
+                        
+                    pcol1, pcol2 = st.columns([2, 3])
+                    with pcol1:
+                        st.markdown(f"**Manufacturer:** `{sel_row.get('manufacturer', '')}`")
+                        st.markdown(f"**Component No:** `{sel_row.get('component_number', '')}`")
+                        st.markdown(f"**Description:** {sel_row.get('material_desc_en', '')}")
+                        st.markdown(f"**PDF File:** `{sel_row.get('pdf_filename', '')}`")
+                        st.markdown(f"**Folder:** `{sel_row.get('pdf_folder', '')}`")
+                        
+                        if pdf_full_path and os.path.exists(pdf_full_path):
+                            with open(pdf_full_path, "rb") as f_pdf:
+                                st.download_button(
+                                    label=f"⬇️ Download PDF ({sel_row.get('pdf_filename', '')})",
+                                    data=f_pdf.read(),
+                                    file_name=sel_row.get('pdf_filename', 'manual.pdf'),
+                                    mime="application/pdf",
+                                    type="primary",
+                                    use_container_width=True,
+                                    key=f"dl_single_pdf_{sel_idx}"
+                                )
+                        else:
+                            st.warning("PDF file path not found on disk.")
+                    with pcol2:
+                        if pdf_full_path and os.path.exists(pdf_full_path):
+                            try:
+                                with open(pdf_full_path, "rb") as pf_read:
+                                    images = convert_pdf_to_images(pf_read.read(), dpi=120)
+                                if images:
+                                    st.caption(f"Page 1 of {len(images)} pages:")
+                                    st.image(images[0], use_column_width=True)
+                            except Exception as ex_prev:
+                                st.info(f"PDF Preview notice: {ex_prev}")
+            else:
+                st.info("No matched PDF documents found for the current filter criteria.")
+        else:
+            st.info("Run 'Scan & Match PDFs' in the first tab to view matched document previews here.")
 
         st.markdown("---")
         with st.expander("🧹 Clean Temporary Junk Files (Thumbs.db)"):
@@ -8792,20 +9000,10 @@ def main():
     """, unsafe_allow_html=True)
     
     st.sidebar.title("🏢 IWK Document")
-    
-    # Render user profile card in the sidebar
-    st.sidebar.markdown(f"""
-    <div style="background-color: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #0078d4; margin-bottom: 15px;">
-        <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Logged in as:</span><br/>
-        <strong style="color: #ffffff; font-size: 1.05rem;">{username}</strong><br/>
-        <span style="color: #60a5fa; font-size: 0.85rem; font-weight: 500;">💼 {user_role.replace('_', ' ').title()}</span><br/>
-        <span style="color: #94a3b8; font-size: 0.8rem;">🏢 Dept: {user_dept}</span>
-    </div>
-    """, unsafe_allow_html=True)
 
     # Sidebar menu options (User Authorization bypassed, all tools unlocked)
-    sidebar_options = ["Dashboard", "Document Tool Center", "Data Extraction", "Reports", "Workflow", "Administration", "Recycle Bin"]
-    sidebar_icons = ["house", "folder2-open", "search", "graph-up", "gear", "shield-lock", "trash"]
+    sidebar_options = ["Dashboard", "Document Tool Center"]
+    sidebar_icons = ["house", "folder2-open"]
 
     with st.sidebar:
         page = option_menu(
@@ -8824,7 +9022,7 @@ def main():
         
         selected_tool = None
         if page == "Document Tool Center":
-            dtc_tools = ["OCR & AI (from QC)", "Advanced OCR Adjustment", "IWK Certificate", "ETK Verification", "Calibration Certificate", "Fault Assistance", "Machine Configuration System", "IQOQDQ", "Supplier OEM"]
+            dtc_tools = ["OCR & AI (from QC)", "Advanced OCR Adjustment", "IWK Certificate", "ETK Verification", "Calibration Certificate", "Fault Assistance", "Function description machine", "IQOQDQ", "Supplier OEM"]
             dtc_icons = ["robot", "stars", "award", "check2-all", "patch-check", "wrench", "gear", "clipboard-check", "truck"]
                 
             st.markdown("<hr style='margin: 10px 0; border-color: #1e3a5f;'>", unsafe_allow_html=True)
@@ -8872,7 +9070,7 @@ def main():
                 """, unsafe_allow_html=True)
                 selected_iqoqdq_sub = option_menu(
                     menu_title=None,
-                    options=["📐 DQ", "🔧 IQ", "⚡ OQ", "🏷️ Rename tag"],
+                    options=["📐 DQ", "🔧 IQ", "⚡ OQ", "🏷️ Rename tag", "📄 Convert PDF"],
                     icons=None,
                     menu_icon="cast",
                     default_index=0,
@@ -8924,7 +9122,7 @@ def main():
                 render_certificate_mapping_page()
         elif selected_tool == "Fault Assistance":
             render_fault_assistance_suite_page()
-        elif selected_tool in ["Machine Configuration System", "Operating Manual"]:
+        elif selected_tool in ["Function description machine", "Machine Configuration System", "Operating Manual"]:
             render_operating_manual_page()
         elif selected_tool == "IQOQDQ":
             render_iqoqdq_page(sub_section=selected_iqoqdq_sub or "📐 DQ")

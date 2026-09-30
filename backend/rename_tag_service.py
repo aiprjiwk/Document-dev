@@ -193,11 +193,12 @@ def normalize_docx_bytes_via_word_saveas(docx_bytes, target_filename=None):
     except Exception:
         return docx_bytes
 
-def update_document_history_table(doc, doc_date_str, update_all_rows=False):
+def update_document_history_table(doc, doc_date_str, update_all_rows=True):
     """
     Scans tables in Word document for Document History table (where header row contains 'VERSION' and 'DATE'),
     and updates the Date cell in data rows to doc_date_str (dd-MMM-yy format).
     """
+    updated = False
     for tbl in doc.tables:
         if not tbl.rows:
             continue
@@ -212,13 +213,13 @@ def update_document_history_table(doc, doc_date_str, update_all_rows=False):
 
         if col_ver >= 0 and col_date >= 0:
             if len(tbl.rows) >= 2:
-                if update_all_rows:
-                    for r_idx in range(1, len(tbl.rows)):
+                for r_idx in range(1, len(tbl.rows)):
+                    try:
                         tbl.rows[r_idx].cells[col_date].text = doc_date_str
-                else:
-                    tbl.rows[1].cells[col_date].text = doc_date_str
-            return True
-    return False
+                        updated = True
+                    except Exception:
+                        pass
+    return updated
 
 def update_docx_custom_properties(docx_bytes, properties_dict):
     """
@@ -322,7 +323,7 @@ def update_docx_custom_properties(docx_bytes, properties_dict):
                         if '<w:updateFields' in s:
                             s = re.sub(r'<w:updateFields[^>]*/>', '<w:updateFields w:val="true"/>', s)
                         else:
-                            s = s.replace('<w:settings ', '<w:settings><w:updateFields w:val="true"/> ', 1)
+                            s = s.replace('</w:settings>', '<w:updateFields w:val="true"/></w:settings>')
                         content = s.encode('utf-8')
                     except Exception:
                         pass
@@ -544,7 +545,7 @@ def process_batch_word_files(
                     f.write(docx_bytes)
 
                 try:
-                    doc = word.Documents.Open(temp_in_path)
+                    doc = word.Documents.Open(FileName=temp_in_path, ConfirmConversions=False, ReadOnly=False, AddToRecentFiles=False)
 
                     props_to_set = {
                         'Copyright': str(copyright_val or ''),
@@ -570,6 +571,8 @@ def process_batch_word_files(
                     replacements = {
                         'DD-MMM-YYYY': doc_date_str,
                         'DD-Mmm-YYYY': doc_date_str,
+                        'DD-MMM-YY': doc_date_str,
+                        'DD-Mmm-YY': doc_date_str,
                         'DD.MM.YYYY': doc_date_str,
                         '20XX-XX-XX': iso_date_str,
                         'YYYY-DD-MM': iso_date_str,
@@ -594,21 +597,45 @@ def process_batch_word_files(
                         except Exception:
                             pass
 
-                    try:
-                        for tbl in doc.Tables:
+                    # Target ONLY Document History tables containing Version + Change + Date headers
+                    for tbl in doc.Tables:
+                        try:
                             if tbl.Rows.Count >= 2:
-                                is_hist_table = False
+                                first_row_cells = tbl.Rows(1).Cells
                                 col_date_idx = -1
-                                for c_i in range(1, tbl.Columns.Count + 1):
-                                    c_text = tbl.Cell(1, c_i).Range.Text.upper()
-                                    if "VERSION" in c_text or "DATE" in c_text:
-                                        is_hist_table = True
-                                    if "DATE" in c_text:
-                                        col_date_idx = c_i
-                                if is_hist_table and col_date_idx > 0:
-                                    tbl.Cell(2, col_date_idx).Range.Text = doc_date_str
-                    except Exception:
-                        pass
+                                has_version = False
+                                has_change = False
+                                has_date = False
+
+                                for c_idx in range(1, first_row_cells.Count + 1):
+                                    try:
+                                        c_text = first_row_cells.Item(c_idx).Range.Text.upper()
+                                        if "VERSION" in c_text:
+                                            has_version = True
+                                        if "CHANGE" in c_text:
+                                            has_change = True
+                                        if "DATE" in c_text:
+                                            has_date = True
+                                            col_date_idx = c_idx
+                                    except Exception:
+                                        pass
+
+                                # Must be Document History table (Version + Change + Date or Version + Date)
+                                is_doc_history = (has_version and has_change and has_date) or (has_version and has_date)
+
+                                # Extra safety: make sure header doesn't contain 'TEST RUN' or 'PASS / FAIL' or 'RESULT'
+                                first_row_full = "".join(first_row_cells.Item(i).Range.Text.upper() for i in range(1, first_row_cells.Count + 1))
+                                if any(kw in first_row_full for kw in ["TEST RUN", "TEST RESULT", "PASS / FAIL", "SIGNATURE PERFORMER", "PREREQUISITE"]):
+                                    is_doc_history = False
+
+                                if is_doc_history and col_date_idx > 0:
+                                    for r_idx in range(2, tbl.Rows.Count + 1):
+                                        try:
+                                            tbl.Cell(r_idx, col_date_idx).Range.Text = doc_date_str
+                                        except Exception:
+                                            pass
+                        except Exception:
+                            pass
 
                     # Save to temp_out_path (named new_fn) FIRST so document name in Word becomes new_fn
                     doc.SaveAs2(temp_out_path, FileFormat=16)

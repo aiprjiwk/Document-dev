@@ -411,6 +411,7 @@ def perform_existing_template_recheck(image_ocr_map: list[dict], machine_type: s
 
     for idx, item in enumerate(image_ocr_map, 1):
         fname = item['fname']
+        fname_base = os.path.splitext(fname)[0]
         t_title = item['title']
         func_match = re.search(r'V\d{4}', fname)
         func_code = func_match.group(0) if func_match else ''
@@ -418,24 +419,32 @@ def perform_existing_template_recheck(image_ocr_map: list[dict], machine_type: s
         # Match using sub-docx file in Machine Type directory
         matched_docx = find_matching_sub_docx(fname, machine_type)
 
-        if matched_docx and os.path.exists(matched_docx):
-            if matched_docx in seen_sub_docx:
-                status = "⚡ Skipped (Duplicate)"
-                action = f"Duplicate screen view (covered by '{seen_sub_docx[matched_docx]}')"
-                duplicate_count += 1
-            else:
-                seen_sub_docx[matched_docx] = fname
-                status = "✅ Maintained & Matched"
-                action = "None (Ready for Word Generation)"
-                maintained_count += 1
-                try:
-                    doc_sub = docx.Document(matched_docx)
-                    if doc_sub.tables and len(doc_sub.tables[0].rows) > 0 and len(doc_sub.tables[0].rows[0].cells) > 0:
-                        cell_txt = doc_sub.tables[0].rows[0].cells[0].text.strip()
-                        if cell_txt:
-                            t_title = re.sub(r'[\r\n]+', ' ', cell_txt).strip()
-                except Exception:
-                    pass
+        is_recipe_format_dup = (
+            fname_base.lower() in (
+                'view_recipesubnavigationview_formatview_tab_0',
+                'view_recipesubnavigationviewrecipeview'
+            ) or
+            fname.lower() in ('view_recipesubnavigationviewrecipeview.jpg', 'view_recipesubnavigationviewrecipeview.png')
+        )
+
+        if (matched_docx and os.path.exists(matched_docx) and matched_docx in seen_sub_docx) or is_recipe_format_dup:
+            primary_name = seen_sub_docx.get(matched_docx, "View_RecipeSubNavigationView_FormatView.jpg") if matched_docx else "View_RecipeSubNavigationView_FormatView.jpg"
+            status = "⚡ Skipped (Duplicate)"
+            action = f"Duplicate screen view (covered by '{primary_name}')"
+            duplicate_count += 1
+        elif matched_docx and os.path.exists(matched_docx):
+            seen_sub_docx[matched_docx] = fname
+            status = "✅ Maintained & Matched"
+            action = "None (Ready for Word Generation)"
+            maintained_count += 1
+            try:
+                doc_sub = docx.Document(matched_docx)
+                if doc_sub.tables and len(doc_sub.tables[0].rows) > 0 and len(doc_sub.tables[0].rows[0].cells) > 0:
+                    cell_txt = doc_sub.tables[0].rows[0].cells[0].text.strip()
+                    if cell_txt:
+                        t_title = re.sub(r'[\r\n]+', ' ', cell_txt).strip()
+            except Exception:
+                pass
         else:
             status = "⚠️ Unmaintained / Missing in Library"
             action = f"Add '{os.path.splitext(fname)[0]}.docx' to Machine Type library"
@@ -458,6 +467,120 @@ def perform_existing_template_recheck(image_ocr_map: list[dict], machine_type: s
         "missing_maint_count": missing_maint_count
     }
     return recheck_df, metrics
+
+def generate_existing_recheck_excel(recheck_df: pd.DataFrame, machine_type: str = "Standard") -> bytes:
+    """
+    Generates an Excel report for Existing Recheck with Template Maintenance,
+    highlighting Unmaintained / Missing rows with yellow fill (#FEF08A).
+    """
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Existing Recheck Report"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Styling definitions
+    header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+
+    # Status fills & fonts
+    missing_fill = PatternFill(start_color="FEF08A", end_color="FEF08A", fill_type="solid")  # Yellow
+    missing_font = Font(name="Segoe UI", size=10, color="7F6000", bold=True)
+
+    matched_fill = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid")  # Soft Green
+    matched_font = Font(name="Segoe UI", size=10, color="276A3C", bold=True)
+
+    skipped_fill = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")  # Light Gray
+    skipped_font = Font(name="Segoe UI", size=10, color="595959", bold=False)
+
+    regular_font = Font(name="Segoe UI", size=10, bold=False)
+
+    thin_border = Border(
+        left=Side(style='thin', color='D9D9D9'),
+        right=Side(style='thin', color='D9D9D9'),
+        top=Side(style='thin', color='D9D9D9'),
+        bottom=Side(style='thin', color='D9D9D9')
+    )
+
+    # Title Block
+    ws.merge_cells("A1:F1")
+    ws["A1"] = "OQ HMI Screenshot Existing Recheck & Template Maintenance Report"
+    ws["A1"].font = Font(name="Segoe UI", size=14, bold=True, color="1F4E78")
+    ws["A1"].alignment = Alignment(vertical="center")
+
+    ws["A2"] = f"Generated Date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Active Machine: {machine_type}"
+    ws["A2"].font = Font(name="Segoe UI", size=10, italic=True, color="595959")
+
+    # Table Headers
+    headers = ["No.", "Image File Name", "Function Code", "Header / Screen Title", "Template Maintenance Status", "Recommended Action"]
+    for col_idx, h in enumerate(headers, 1):
+        cell = ws.cell(row=4, column=col_idx, value=h)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    row_idx = 5
+    for idx, row in recheck_df.iterrows():
+        fname = str(row.get("Image File Name", ""))
+        fcode = str(row.get("Function Code", ""))
+        stitle = str(row.get("Header / Screen Title", ""))
+        status_str = str(row.get("Template Maintenance Status", ""))
+        action = str(row.get("Recommended Action", ""))
+
+        st_lower = status_str.lower()
+        is_missing = "unmaintained" in st_lower or "missing" in st_lower
+        is_matched = "maintained" in st_lower or "matched" in st_lower
+        is_skipped = "skipped" in st_lower or "duplicate" in st_lower
+
+        if is_missing:
+            row_fill = missing_fill
+            row_font = missing_font
+        elif is_matched:
+            row_fill = matched_fill
+            row_font = matched_font
+        elif is_skipped:
+            row_fill = skipped_fill
+            row_font = skipped_font
+        else:
+            row_fill = None
+            row_font = regular_font
+
+        ws.cell(row=row_idx, column=1, value=idx + 1).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_idx, column=2, value=fname).alignment = Alignment(horizontal="left")
+        ws.cell(row=row_idx, column=3, value=fcode).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_idx, column=4, value=stitle).alignment = Alignment(horizontal="left")
+        
+        status_c = ws.cell(row=row_idx, column=5, value=status_str)
+        status_c.alignment = Alignment(horizontal="left")
+        
+        ws.cell(row=row_idx, column=6, value=action).alignment = Alignment(horizontal="left")
+
+        # Apply cell fonts, borders and fills
+        for c in range(1, 7):
+            cell = ws.cell(row=row_idx, column=c)
+            cell.border = thin_border
+            if row_fill:
+                cell.fill = row_fill
+            if is_missing or is_matched:
+                cell.font = row_font
+            elif is_skipped and c == 5:
+                cell.font = skipped_font
+            else:
+                cell.font = regular_font
+
+        row_idx += 1
+
+    # Column Widths
+    ws.column_dimensions['A'].width = 8
+    ws.column_dimensions['B'].width = 45
+    ws.column_dimensions['C'].width = 16
+    ws.column_dimensions['D'].width = 45
+    ws.column_dimensions['E'].width = 40
+    ws.column_dimensions['F'].width = 50
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return output.getvalue()
 
 def parse_hmi_texts_excel(excel_source) -> tuple[pd.DataFrame, dict]:
     """
@@ -1523,21 +1646,39 @@ def generate_oq_hmi_word(
     for item in image_ocr_map:
         t = item['title']
         fname = item['fname']
+        fname_base = os.path.splitext(fname)[0]
         matched_sub_docx = find_matching_sub_docx(fname, machine_type)
 
+        is_recipe_format_dup = (
+            fname_base.lower() in (
+                'view_recipesubnavigationview_formatview_tab_0',
+                'view_recipesubnavigationviewrecipeview'
+            ) or
+            fname.lower() in ('view_recipesubnavigationviewrecipeview.jpg', 'view_recipesubnavigationviewrecipeview.png')
+        )
+
         if matched_sub_docx:
-            if matched_sub_docx in seen_sub_docx:
-                primary_fname = seen_sub_docx[matched_sub_docx]
+            if matched_sub_docx in seen_sub_docx or is_recipe_format_dup:
+                primary_fname = seen_sub_docx.get(matched_sub_docx, fname)
                 inserted_map[fname] = {
                     'is_duplicate': True,
                     'primary_fname': primary_fname,
                     'table_title': t,
-                    'recheck_status': 'Skipped (Duplicate)',
+                    'recheck_status': '⚡ Skipped (Duplicate)',
                     'remarks': f"Duplicate screen view skipped (already covered by '{primary_fname}')"
                 }
             else:
                 seen_sub_docx[matched_sub_docx] = fname
                 unique_image_ocr_map.append(item)
+        elif is_recipe_format_dup:
+            primary_fname = fname
+            inserted_map[fname] = {
+                'is_duplicate': True,
+                'primary_fname': primary_fname,
+                'table_title': t,
+                'recheck_status': '⚡ Skipped (Duplicate)',
+                'remarks': f"Duplicate screen view skipped (already covered by '{primary_fname}')"
+            }
         else:
             # Images without matching sub-docx in Machine Type folder are kept in map so they get marked as Not Inserted
             unique_image_ocr_map.append(item)
@@ -1765,88 +1906,97 @@ def generate_oq_hmi_word(
 
             total_screens += 1
 
+            sub_elements = []
             try:
                 sub_doc = docx.Document(matched_sub_docx)
-                if sub_doc.tables and len(sub_doc.tables[0].rows) > 0:
-                    new_tbl_xml = copy.deepcopy(sub_doc.tables[0]._tbl)
-                else:
-                    new_tbl_xml = copy.deepcopy(template_xml)
+                for child in sub_doc.element.body:
+                    if not child.tag.endswith('sectPr'):
+                        sub_elements.append(copy.deepcopy(child))
             except Exception:
-                new_tbl_xml = copy.deepcopy(template_xml)
+                sub_elements = []
 
-            # For the FIRST inserted table (total_screens == 1), override pageBreakBefore so table starts directly under Heading 2 '3.3 Masks'
-            if total_screens == 1:
-                for p_elem in new_tbl_xml.xpath('.//w:p'):
-                    pPr = p_elem.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pPr')
-                    if pPr is None:
-                        pPr = docx.oxml.OxmlElement('w:pPr')
-                        p_elem.insert(0, pPr)
-                    for pbb in pPr.findall('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pageBreakBefore'):
-                        pPr.remove(pbb)
-                    pbb_override = docx.oxml.OxmlElement('w:pageBreakBefore')
-                    pbb_override.set('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val', '0')
-                    pPr.append(pbb_override)
+            if not sub_elements:
+                sub_elements = [copy.deepcopy(template_xml)]
 
-            # Insert right after current_insert_ref (starts under 3.3 Masks)
-            current_insert_ref.addnext(new_tbl_xml)
-            current_insert_ref = new_tbl_xml
+            is_first_table_of_subdoc = True
+            first_tbl_title = item['title']
 
-            new_tbl = docx.table.Table(new_tbl_xml, doc)
+            for elem in sub_elements:
+                # For the FIRST element of the FIRST screen overall (total_screens == 1), override pageBreakBefore
+                if total_screens == 1 and is_first_table_of_subdoc:
+                    for p_elem in elem.xpath('.//w:p'):
+                        pPr = p_elem.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pPr')
+                        if pPr is None:
+                            pPr = docx.oxml.OxmlElement('w:pPr')
+                            p_elem.insert(0, pPr)
+                        for pbb in pPr.findall('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pageBreakBefore'):
+                            pPr.remove(pbb)
+                        pbb_override = docx.oxml.OxmlElement('w:pageBreakBefore')
+                        pbb_override.set('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val', '0')
+                        pPr.append(pbb_override)
 
-            # Ensure header row (Row 0 Cell 0) uses style 'Path' and has no bullet 'numPr' override so automatic list numbers format properly (e.g. 108. -> ...)
-            try:
-                hdr_cell = new_tbl.rows[0].cells[0]
-                for p_hdr in hdr_cell.paragraphs:
-                    p_hdr.style = "Path"
-                    pPr = p_hdr._p.get_or_add_pPr()
-                    numPr = pPr.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}numPr')
-                    if numPr is not None:
-                        pPr.remove(numPr)
-            except Exception:
-                pass
+                current_insert_ref.addnext(elem)
+                current_insert_ref = elem
 
-            # Insert new screenshot picture into Row 2 Cell 1 (Row 1 Index 0)
-            try:
-                img_cell = new_tbl.rows[1].cells[0] if len(new_tbl.rows) > 1 else new_tbl.rows[0].cells[0]
-                img_cell.text = ""
-                p = img_cell.paragraphs[0]
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                p.paragraph_format.space_before = Pt(0)
-                p.paragraph_format.space_after = Pt(0)
+                if elem.tag.endswith('tbl'):
+                    new_tbl = docx.table.Table(elem, doc)
 
-                # Set cell padding (left/right margins) to 0 for full edge-to-edge screenshot width
-                try:
-                    tcPr = img_cell._tc.get_or_add_tcPr()
-                    tcMar = docx.oxml.OxmlElement('w:tcMar')
-                    for side in ['left', 'right']:
-                        m = docx.oxml.OxmlElement(f'w:{side}')
-                        m.set(docx.oxml.ns.qn('w:w'), '0')
-                        m.set(docx.oxml.ns.qn('w:type'), 'dxa')
-                        tcMar.append(m)
-                    tcPr.append(tcMar)
-                except Exception:
-                    pass
+                    # Header row style formatting
+                    try:
+                        hdr_cell = new_tbl.rows[0].cells[0]
+                        for p_hdr in hdr_cell.paragraphs:
+                            p_hdr.style = "Path"
+                            pPr = p_hdr._p.get_or_add_pPr()
+                            numPr = pPr.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}numPr')
+                            if numPr is not None:
+                                pPr.remove(numPr)
+                    except Exception:
+                        pass
 
-                target_width = img_cell.width if (img_cell.width and img_cell.width > Inches(4.0)) else Inches(6.25)
-                run = p.add_run()
+                    # Replace screenshot picture ONLY in the FIRST table of this sub-docx
+                    if is_first_table_of_subdoc:
+                        is_first_table_of_subdoc = False
+                        try:
+                            first_tbl_title = new_tbl.rows[0].cells[0].text.strip() if new_tbl.rows else item['title']
+                            img_cell = new_tbl.rows[1].cells[0] if len(new_tbl.rows) > 1 else new_tbl.rows[0].cells[0]
+                            img_cell.text = ""
+                            p = img_cell.paragraphs[0]
+                            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                            p.paragraph_format.space_before = Pt(0)
+                            p.paragraph_format.space_after = Pt(0)
 
-                if img_info.get('is_bytes'):
-                    img_stream = io.BytesIO(img_info['path'])
-                    run.add_picture(img_stream, width=target_width)
-                else:
-                    run.add_picture(img_info['path'], width=target_width)
+                            try:
+                                tcPr = img_cell._tc.get_or_add_tcPr()
+                                tcMar = docx.oxml.OxmlElement('w:tcMar')
+                                for side in ['left', 'right']:
+                                    m = docx.oxml.OxmlElement(f'w:{side}')
+                                    m.set(docx.oxml.ns.qn('w:w'), '0')
+                                    m.set(docx.oxml.ns.qn('w:type'), 'dxa')
+                                    tcMar.append(m)
+                                tcPr.append(tcMar)
+                            except Exception:
+                                pass
 
-                tbl_header_title = new_tbl.rows[0].cells[0].text.strip() if new_tbl.rows else item['title']
-                inserted_map[fname] = {
-                    'table_idx': idx,
-                    'table_title': tbl_header_title,
-                    'recheck_status': '✅ Sub-Template Matched',
-                    'remarks': f"Copied sub-template '{os.path.basename(matched_sub_docx)}' & inserted screenshot"
-                }
-            except Exception as ex:
-                pass
+                            target_width = img_cell.width if (img_cell.width and img_cell.width > Inches(4.0)) else Inches(6.25)
+                            run = p.add_run()
 
-            # Add Page Break after each screen view section so next screen starts on a new page
+                            if img_info.get('is_bytes'):
+                                img_stream = io.BytesIO(img_info['path'])
+                                run.add_picture(img_stream, width=target_width)
+                            else:
+                                run.add_picture(img_info['path'], width=target_width)
+
+                        except Exception:
+                            pass
+
+            inserted_map[fname] = {
+                'table_idx': idx,
+                'table_title': first_tbl_title,
+                'recheck_status': '✅ Sub-Template Matched',
+                'remarks': f"Copied full sub-template '{os.path.basename(matched_sub_docx)}' ({len(sub_elements)} elements) & inserted screenshot on main page"
+            }
+
+            # Add Page Break after each screen view section
             p_pb = doc.add_paragraph()
             p_pb.add_run().add_break(docx.enum.text.WD_BREAK.PAGE)
             current_insert_ref.addnext(p_pb._p)
@@ -2121,7 +2271,7 @@ def generate_checklist_xlsm(export_rows: list[dict]) -> tuple[bytes, str, str]:
 
     # Fallback to standard openpyxl .xlsx
     df_export = pd.DataFrame(export_rows)
-    cols = ["Checkbox", "Select", "ลำดับที่เลือก", "File Name", "Function Code", "Header Title", "Status"]
+    cols = ["Checkbox", "Select", "Selected Sequence", "File Name", "Function Code", "Header Title", "Status"]
     for c in cols:
         if c not in df_export.columns:
             df_export[c] = ""

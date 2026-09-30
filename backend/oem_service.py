@@ -193,18 +193,27 @@ def scan_and_match_oem_pdfs(oem_dir: str, df_bom: pd.DataFrame) -> Tuple[pd.Data
         mfg_no = str(row.get('manufacturer_part_no', '')).strip()
         
         matched_pdf = None
+        matched_full_path = ""
+        matched_folder = ""
         
         if pdf_files:
+            clean_part = part_no.lstrip('0') if part_no.isdigit() else part_no
+            clean_mfg = mfg_no.lstrip('0') if mfg_no.isdigit() else mfg_no
+            
             for pdf in pdf_files:
                 fname = pdf['filename']
                 fname_lower = fname.lower()
                 
                 # Check if Part No. or Manufacturer Part No. is in filename
                 part_match = (part_no and len(part_no) > 2 and part_no.lower() in fname_lower)
+                clean_part_match = (clean_part and len(clean_part) > 2 and clean_part.lower() in fname_lower)
                 mfg_part_match = (mfg_no and len(mfg_no) > 2 and mfg_no.lower() in fname_lower)
+                clean_mfg_match = (clean_mfg and len(clean_mfg) > 2 and clean_mfg.lower() in fname_lower)
                 
-                if part_match or mfg_part_match:
+                if part_match or clean_part_match or mfg_part_match or clean_mfg_match:
                     matched_pdf = fname
+                    matched_full_path = pdf['full_path']
+                    matched_folder = pdf['folder']
                     break
                     
         status = "Matched" if matched_pdf else "Missing"
@@ -215,6 +224,8 @@ def scan_and_match_oem_pdfs(oem_dir: str, df_bom: pd.DataFrame) -> Tuple[pd.Data
             
         row_dict = row.to_dict()
         row_dict['pdf_filename'] = matched_pdf or ''
+        row_dict['pdf_full_path'] = matched_full_path
+        row_dict['pdf_folder'] = matched_folder
         row_dict['pdf_status'] = status
         matched_records.append(row_dict)
         
@@ -643,11 +654,14 @@ def generate_missing_purchasing_report(df_records: pd.DataFrame) -> pd.DataFrame
 def get_oem_repo_dir(base_dir: str) -> str:
     """
     Returns the primary folder where supplier directories reside.
-    If 'New folder' exists within base_dir, uses that; otherwise uses base_dir directly.
+    Checks 'DataBase_Supplier' first, then 'New folder', then base_dir.
     """
-    candidate = os.path.join(base_dir, "New folder")
-    if os.path.exists(candidate) and os.path.isdir(candidate):
-        return candidate
+    candidate_db = os.path.join(base_dir, "DataBase_Supplier")
+    if os.path.exists(candidate_db) and os.path.isdir(candidate_db):
+        return candidate_db
+    candidate_nf = os.path.join(base_dir, "New folder")
+    if os.path.exists(candidate_nf) and os.path.isdir(candidate_nf):
+        return candidate_nf
     return base_dir
 
 def list_oem_folders(base_dir: str) -> List[str]:
