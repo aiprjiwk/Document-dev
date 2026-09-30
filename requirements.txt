@@ -10,4 +10,8 @@ winocr
 surya-ocr
 streamlit-option-menu
 sqlalchemy
-
+python-docx
+pywin32
+opencv-python
+beautifulsoup4
+xlrd
