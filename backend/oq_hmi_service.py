@@ -1520,8 +1520,35 @@ def get_category_and_sort_key(fname):
         
         sub_order = v_num * 100 + tab_num
         return (8, sub_order, name_no_ext), "OPERATION_SPECIAL", name_no_ext
-    else:
-        return (8, 99999, name_no_ext), "OPERATION_SPECIAL", name_no_ext
+def strip_inner_page_breaks_from_element(elem):
+    """
+    Strips all internal Page Breaks (<w:br w:type="page"/> and <w:pageBreakBefore/>) from an OXML element.
+    Ensures that inner page breaks from sub-templates do not create blank pages or awkward layout splits.
+    """
+    ns_w = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+    
+    # 1. Strip <w:br w:type="page"/>
+    try:
+        br_nodes = [
+            node for node in elem.iter(f'{{{ns_w}}}br')
+            if node.get(f'{{{ns_w}}}type') == 'page' or node.get('w:type') == 'page' or node.get('type') == 'page'
+        ]
+        for br in br_nodes:
+            parent = br.getparent()
+            if parent is not None:
+                parent.remove(br)
+    except Exception:
+        pass
+
+    # 2. Strip <w:pageBreakBefore/>
+    try:
+        pbb_nodes = list(elem.iter(f'{{{ns_w}}}pageBreakBefore'))
+        for pbb in pbb_nodes:
+            parent = pbb.getparent()
+            if parent is not None:
+                parent.remove(pbb)
+    except Exception:
+        pass
 
 
 def generate_oq_hmi_word(
@@ -1911,7 +1938,9 @@ def generate_oq_hmi_word(
                 sub_doc = docx.Document(matched_sub_docx)
                 for child in sub_doc.element.body:
                     if not child.tag.endswith('sectPr'):
-                        sub_elements.append(copy.deepcopy(child))
+                        cloned_child = copy.deepcopy(child)
+                        strip_inner_page_breaks_from_element(cloned_child)
+                        sub_elements.append(cloned_child)
             except Exception:
                 sub_elements = []
 
