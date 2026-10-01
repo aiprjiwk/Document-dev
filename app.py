@@ -8494,7 +8494,7 @@ def render_supplier_oem_page():
         
     with tab_dashboard:
         workspace_oem = os.path.join(os.path.dirname(__file__), "OEM")
-        source_dir = workspace_oem if os.path.exists(workspace_oem) else r"C:\Users\DELL\Desktop\Test\OEM"
+        source_dir = workspace_oem
         filter_d500_check = True
 
         st.subheader("⚙️ Machine Setup & Processing")

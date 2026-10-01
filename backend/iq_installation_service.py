@@ -8,8 +8,9 @@ import pandas as pd
 import openpyxl
 import docx
 
-DEFAULT_TEMPLATE_PATH = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\IQ_Installation\XXXXX_02_IQ_Installation_20XX-XX-XX_en.docx")
-DEFAULT_TAG_MAPPING_PATH = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\IQ_Installation\iq_installation_tag_mapping.json")
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DEFAULT_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "IQ_Installation", "XXXXX_02_IQ_Installation_20XX-XX-XX_en.docx")
+DEFAULT_TAG_MAPPING_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "IQ_Installation", "iq_installation_tag_mapping.json")
 
 def load_tag_mapping():
     """

@@ -1920,9 +1920,11 @@ def generate_oq_hmi_word(
                     sub_docx_map[norm_k] = os.path.join(mach_dir, f)
                     sub_docx_map[f_base.lower()] = os.path.join(mach_dir, f)
 
+        more_category_count = 0
         for idx, item in enumerate(image_ocr_map, 1):
             img_info = item['img_info']
             fname = item['fname']
+            category = item.get('category', '')
 
             # Match sub-docx using unified helper function
             matched_sub_docx = find_matching_sub_docx(fname, machine_type)
@@ -1932,6 +1934,15 @@ def generate_oq_hmi_word(
                 continue
 
             total_screens += 1
+
+            is_more_cat = (category == '(...)')
+            if is_more_cat:
+                more_category_count += 1
+                # Category (...): Only replace screenshot on the FIRST screen of category (...)
+                # For subsequent screens of category (...), keep the sub-template's original picture
+                should_replace_image = (more_category_count == 1)
+            else:
+                should_replace_image = True
 
             sub_elements = []
             try:
@@ -1982,47 +1993,73 @@ def generate_oq_hmi_word(
                     except Exception:
                         pass
 
-                    # Replace screenshot picture ONLY in the FIRST table of this sub-docx
+                    # For OTHER categories (not '(...)'), color table header cells (row 0) YELLOW (FFFF00)
+                    if not is_more_cat and new_tbl.rows:
+                        try:
+                            for c_hdr in new_tbl.rows[0].cells:
+                                tcPr = c_hdr._tc.get_or_add_tcPr()
+                                for shd_elem in tcPr.findall('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}shd'):
+                                    tcPr.remove(shd_elem)
+                                shd_yellow = docx.oxml.OxmlElement('w:shd')
+                                shd_yellow.set(docx.oxml.ns.qn('w:val'), 'clear')
+                                shd_yellow.set(docx.oxml.ns.qn('w:color'), 'auto')
+                                shd_yellow.set(docx.oxml.ns.qn('w:fill'), 'FFFF00')
+                                tcPr.append(shd_yellow)
+                        except Exception:
+                            pass
+
+                    # Replace screenshot picture ONLY in the FIRST table of this sub-docx if should_replace_image is True
                     if is_first_table_of_subdoc:
                         is_first_table_of_subdoc = False
-                        try:
-                            first_tbl_title = new_tbl.rows[0].cells[0].text.strip() if new_tbl.rows else item['title']
-                            img_cell = new_tbl.rows[1].cells[0] if len(new_tbl.rows) > 1 else new_tbl.rows[0].cells[0]
-                            img_cell.text = ""
-                            p = img_cell.paragraphs[0]
-                            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                            p.paragraph_format.space_before = Pt(0)
-                            p.paragraph_format.space_after = Pt(0)
-
+                        first_tbl_title = new_tbl.rows[0].cells[0].text.strip() if new_tbl.rows else item['title']
+                        if should_replace_image:
                             try:
-                                tcPr = img_cell._tc.get_or_add_tcPr()
-                                tcMar = docx.oxml.OxmlElement('w:tcMar')
-                                for side in ['left', 'right']:
-                                    m = docx.oxml.OxmlElement(f'w:{side}')
-                                    m.set(docx.oxml.ns.qn('w:w'), '0')
-                                    m.set(docx.oxml.ns.qn('w:type'), 'dxa')
-                                    tcMar.append(m)
-                                tcPr.append(tcMar)
+                                img_cell = new_tbl.rows[1].cells[0] if len(new_tbl.rows) > 1 else new_tbl.rows[0].cells[0]
+                                img_cell.text = ""
+                                p = img_cell.paragraphs[0]
+                                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                                p.paragraph_format.space_before = Pt(0)
+                                p.paragraph_format.space_after = Pt(0)
+
+                                try:
+                                    tcPr = img_cell._tc.get_or_add_tcPr()
+                                    tcMar = docx.oxml.OxmlElement('w:tcMar')
+                                    for side in ['left', 'right']:
+                                        m = docx.oxml.OxmlElement(f'w:{side}')
+                                        m.set(docx.oxml.ns.qn('w:w'), '0')
+                                        m.set(docx.oxml.ns.qn('w:type'), 'dxa')
+                                        tcMar.append(m)
+                                    tcPr.append(tcMar)
+                                except Exception:
+                                    pass
+
+                                target_width = img_cell.width if (img_cell.width and img_cell.width > Inches(4.0)) else Inches(6.25)
+                                run = p.add_run()
+
+                                if img_info.get('is_bytes'):
+                                    img_stream = io.BytesIO(img_info['path'])
+                                    run.add_picture(img_stream, width=target_width)
+                                else:
+                                    run.add_picture(img_info['path'], width=target_width)
+
                             except Exception:
                                 pass
 
-                            target_width = img_cell.width if (img_cell.width and img_cell.width > Inches(4.0)) else Inches(6.25)
-                            run = p.add_run()
-
-                            if img_info.get('is_bytes'):
-                                img_stream = io.BytesIO(img_info['path'])
-                                run.add_picture(img_stream, width=target_width)
-                            else:
-                                run.add_picture(img_info['path'], width=target_width)
-
-                        except Exception:
-                            pass
+            if is_more_cat and not should_replace_image:
+                recheck_st = '✅ Sub-Template Matched (Original Image Preserved)'
+                rem_str = f"Copied full sub-template '{os.path.basename(matched_sub_docx)}' ({len(sub_elements)} elements) & preserved original template screenshot"
+            elif not is_more_cat:
+                recheck_st = '✅ Sub-Template Matched (Yellow Header Highlight)'
+                rem_str = f"Copied full sub-template '{os.path.basename(matched_sub_docx)}' ({len(sub_elements)} elements) & applied yellow header highlight"
+            else:
+                recheck_st = '✅ Sub-Template Matched'
+                rem_str = f"Copied full sub-template '{os.path.basename(matched_sub_docx)}' ({len(sub_elements)} elements) & inserted screenshot on main page"
 
             inserted_map[fname] = {
                 'table_idx': idx,
                 'table_title': first_tbl_title,
-                'recheck_status': '✅ Sub-Template Matched',
-                'remarks': f"Copied full sub-template '{os.path.basename(matched_sub_docx)}' ({len(sub_elements)} elements) & inserted screenshot on main page"
+                'recheck_status': recheck_st,
+                'remarks': rem_str
             }
 
             # Add Page Break after each screen view section

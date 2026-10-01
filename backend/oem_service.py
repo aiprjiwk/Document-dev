@@ -247,10 +247,10 @@ def find_oem_template_path(custom_dir: Optional[str] = None) -> Optional[str]:
         candidates.append(os.path.join(custom_dir, "XXXXX_Template_Overview sub-supplier documentation.xlsx"))
         candidates.append(os.path.join(custom_dir, "..", "XXXXX_Template_Overview sub-supplier documentation.xlsx"))
     
+    PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     candidates.extend([
-        r"C:\Users\DELL\Desktop\App IWK\OEM\XXXXX_Template_Overview sub-supplier documentation.xlsx",
-        r"C:\Users\DELL\Desktop\Test\OEM\XXXXX_Template_Overview sub-supplier documentation.xlsx",
-        r"C:\Users\DELL\Desktop\Test\Master\XXXXX_Template_Overview sub-supplier documentation.xlsx"
+        os.path.join(PROJECT_ROOT, "OEM", "XXXXX_Template_Overview sub-supplier documentation.xlsx"),
+        os.path.join(PROJECT_ROOT, "XXXXX_Template_Overview sub-supplier documentation.xlsx"),
     ])
     for p in candidates:
         if os.path.exists(p):

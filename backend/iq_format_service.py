@@ -7,8 +7,9 @@ import pandas as pd
 import pythoncom
 import win32com.client
 
-DEFAULT_TEMPLATE_PATH = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\IQ_Format\5XXXX_08_IQ_Format Parts_20XX-XX-XX_en.doc")
-FALLBACK_TEMPLATE_PATH = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\Data IQOQDQ\5XXXX_08_IQ_Format Parts_20XX-XX-XX_en.doc")
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DEFAULT_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "IQ_Format", "5XXXX_08_IQ_Format Parts_20XX-XX-XX_en.doc")
+FALLBACK_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "Data IQOQDQ", "5XXXX_08_IQ_Format Parts_20XX-XX-XX_en.doc")
 
 def clean_quantity(raw_qty):
     """

@@ -10,10 +10,11 @@ import docx
 from docx.shared import Pt
 from docx.enum.text import WD_BREAK
 
-DEFAULT_TEMPLATE_PATH = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\OQ Alarm\XXXXX_10_OQ_Alarms_GMP_2025-01-02_en.docx")
-DEFAULT_SAMPLE_EXCEL_PATH = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\OQ Alarm\5XXXX-AlarmInfo.xlsx")
-GMP_ALARME_BASE = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\OQ Alarm\GMP_Alarme")
-DOCX_CACHE_BASE = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\OQ Alarm\.docx_cache")
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DEFAULT_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "OQ Alarm", "XXXXX_10_OQ_Alarms_GMP_2025-01-02_en.docx")
+DEFAULT_SAMPLE_EXCEL_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "OQ Alarm", "5XXXX-AlarmInfo.xlsx")
+GMP_ALARME_BASE = os.path.join(PROJECT_ROOT, "IQOQDQ", "OQ Alarm", "GMP_Alarme")
+DOCX_CACHE_BASE = os.path.join(PROJECT_ROOT, "IQOQDQ", "OQ Alarm", ".docx_cache")
 
 def get_available_machine_types():
     """

@@ -8,8 +8,9 @@ import docx
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-DEFAULT_TEMPLATE_PATH = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\IQ_CCI\XXXXX_05_IQ_Control Components_20XX-XX-XX_en.docx")
-DEFAULT_EXCEL_PATH = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\IQ_CCI\5XXXX_Part list.xlsx")
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DEFAULT_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "IQ_CCI", "XXXXX_05_IQ_Control Components_20XX-XX-XX_en.docx")
+DEFAULT_EXCEL_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "IQ_CCI", "5XXXX_Part list.xlsx")
 
 def parse_iq_cci_excel(excel_source):
     """

@@ -11,8 +11,9 @@ from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_ALIGN_VERTICAL, WD_ROW_HEIGHT_RULE
 
-DEFAULT_TEMPLATE_PATH = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\IO list\XXXXX_03_OQ_IO Tests_20XX-XX-XX_en.docx")
-DEFAULT_SAMPLE_PATH = os.path.abspath(r"C:\Users\cpreephim\Desktop\App Team\IQOQDQ\IO list\5XXXX_IOList_1.xls")
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DEFAULT_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "IO list", "XXXXX_03_OQ_IO Tests_20XX-XX-XX_en.docx")
+DEFAULT_SAMPLE_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "IO list", "5XXXX_IOList_1.xls")
 
 def parse_and_compute_iolist(file_source):
     """
