@@ -1920,7 +1920,6 @@ def generate_oq_hmi_word(
                     sub_docx_map[norm_k] = os.path.join(mach_dir, f)
                     sub_docx_map[f_base.lower()] = os.path.join(mach_dir, f)
 
-        more_category_count = 0
         for idx, item in enumerate(image_ocr_map, 1):
             img_info = item['img_info']
             fname = item['fname']
@@ -1935,22 +1934,42 @@ def generate_oq_hmi_word(
 
             total_screens += 1
 
-            is_more_cat = (category == '(...)')
-            if is_more_cat:
-                more_category_count += 1
-                # Category (...): Only replace screenshot on the FIRST screen of category (...)
-                # For subsequent screens of category (...), keep the sub-template's original picture
-                should_replace_image = (more_category_count == 1)
-            else:
-                should_replace_image = True
+            has_valid_image = bool(img_info and (img_info.get('path') or img_info.get('is_bytes')))
+            should_replace_image = has_valid_image
 
             sub_elements = []
             try:
                 sub_doc = docx.Document(matched_sub_docx)
+
+                # Transfer image media relationships from sub_doc to doc package so they are never broken
+                rel_map = {}
+                for rel_id, rel in sub_doc.part.rels.items():
+                    if 'image' in rel.reltype:
+                        try:
+                            new_rel_id, _ = doc.part.get_or_add_image(io.BytesIO(rel.target_part.blob))
+                            rel_map[rel_id] = new_rel_id
+                        except Exception:
+                            pass
+
                 for child in sub_doc.element.body:
                     if not child.tag.endswith('sectPr'):
                         cloned_child = copy.deepcopy(child)
                         strip_inner_page_breaks_from_element(cloned_child)
+
+                        # Remap any image embeds inside this element to doc's package
+                        if rel_map:
+                            ns_a = 'http://schemas.openxmlformats.org/drawingml/2006/main'
+                            ns_v = 'urn:schemas-microsoft-com:vml'
+                            ns_r = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
+                            for blip in cloned_child.iter(f'{{{ns_a}}}blip'):
+                                embed_id = blip.get(f'{{{ns_r}}}embed') or blip.get('r:embed')
+                                if embed_id in rel_map:
+                                    blip.set(f'{{{ns_r}}}embed', rel_map[embed_id])
+                            for imgdata in cloned_child.iter(f'{{{ns_v}}}imagedata'):
+                                embed_id = imgdata.get(f'{{{ns_r}}}id') or imgdata.get('r:id')
+                                if embed_id in rel_map:
+                                    imgdata.set(f'{{{ns_r}}}id', rel_map[embed_id])
+
                         sub_elements.append(cloned_child)
             except Exception:
                 sub_elements = []
@@ -1993,18 +2012,13 @@ def generate_oq_hmi_word(
                     except Exception:
                         pass
 
-                    # For OTHER categories (not '(...)'), color table header cells (row 0) YELLOW (FFFF00)
-                    if not is_more_cat and new_tbl.rows:
+                    # Clean header shading if present
+                    if new_tbl.rows:
                         try:
                             for c_hdr in new_tbl.rows[0].cells:
                                 tcPr = c_hdr._tc.get_or_add_tcPr()
                                 for shd_elem in tcPr.findall('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}shd'):
                                     tcPr.remove(shd_elem)
-                                shd_yellow = docx.oxml.OxmlElement('w:shd')
-                                shd_yellow.set(docx.oxml.ns.qn('w:val'), 'clear')
-                                shd_yellow.set(docx.oxml.ns.qn('w:color'), 'auto')
-                                shd_yellow.set(docx.oxml.ns.qn('w:fill'), 'FFFF00')
-                                tcPr.append(shd_yellow)
                         except Exception:
                             pass
 
@@ -2045,21 +2059,11 @@ def generate_oq_hmi_word(
                             except Exception:
                                 pass
 
-            if is_more_cat and not should_replace_image:
-                recheck_st = '✅ Sub-Template Matched (Original Image Preserved)'
-                rem_str = f"Copied full sub-template '{os.path.basename(matched_sub_docx)}' ({len(sub_elements)} elements) & preserved original template screenshot"
-            elif not is_more_cat:
-                recheck_st = '✅ Sub-Template Matched (Yellow Header Highlight)'
-                rem_str = f"Copied full sub-template '{os.path.basename(matched_sub_docx)}' ({len(sub_elements)} elements) & applied yellow header highlight"
-            else:
-                recheck_st = '✅ Sub-Template Matched'
-                rem_str = f"Copied full sub-template '{os.path.basename(matched_sub_docx)}' ({len(sub_elements)} elements) & inserted screenshot on main page"
-
             inserted_map[fname] = {
                 'table_idx': idx,
                 'table_title': first_tbl_title,
-                'recheck_status': recheck_st,
-                'remarks': rem_str
+                'recheck_status': '✅ Sub-Template Matched',
+                'remarks': f"Copied full sub-template '{os.path.basename(matched_sub_docx)}' ({len(sub_elements)} elements)" + (" & inserted screenshot" if should_replace_image else " & preserved template screenshot")
             }
 
             # Add Page Break after each screen view section

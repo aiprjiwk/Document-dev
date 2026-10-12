@@ -6642,13 +6642,27 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                 cfg_hmi_col1, cfg_hmi_col2 = st.columns(2)
                 with cfg_hmi_col1:
                     available_hmi_machines = oq_hmi_svc.get_available_hmi_machine_types()
-                    default_hmi_m_idx = available_hmi_machines.index("FP") if "FP" in available_hmi_machines else 0
+                    default_hmi_m = "SC 5" if "SC 5" in available_hmi_machines else ("FP" if "FP" in available_hmi_machines else (available_hmi_machines[0] if available_hmi_machines else "FP"))
+                    if "oq_hmi_machine_sel" not in st.session_state:
+                        st.session_state["oq_hmi_machine_sel"] = default_hmi_m
+                    if "oq_hmi_maint_active_mach" not in st.session_state:
+                        st.session_state["oq_hmi_maint_active_mach"] = st.session_state["oq_hmi_machine_sel"]
+
+                    def _sync_mach_to_maint():
+                        st.session_state["oq_hmi_maint_active_mach"] = st.session_state.get("oq_hmi_machine_sel", default_hmi_m)
+
+                    def _sync_mach_to_gen():
+                        st.session_state["oq_hmi_machine_sel"] = st.session_state.get("oq_hmi_maint_active_mach", default_hmi_m)
+
+                    cur_mach_val = st.session_state.get("oq_hmi_machine_sel", default_hmi_m)
+                    default_hmi_m_idx = available_hmi_machines.index(cur_mach_val) if cur_mach_val in available_hmi_machines else 0
                     selected_hmi_machine = st.selectbox(
                         "🏭 Select Machine Type",
                         available_hmi_machines,
                         index=default_hmi_m_idx,
                         key="oq_hmi_machine_sel",
-                        help="Target machine type folder (e.g. FP, SC_SI, TZC, FC, TL, Standard)"
+                        on_change=_sync_mach_to_maint,
+                        help="Target machine type folder (e.g. FP, SC 5, SC_SI, TZC, FC, TL, Standard)"
                     )
                 with cfg_hmi_col2:
                     hmi_screen_type = st.radio(
@@ -6772,10 +6786,14 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                                 ocr_map_preview, machine_type=selected_hmi_machine, visu_type=visu_clean
                             )
 
-                            rc_m1, rc_m2, rc_m3 = st.columns(3)
+                            rc_m1, rc_m2, rc_m3, rc_m4 = st.columns([1, 1, 1, 1.2])
                             rc_m1.metric("📋 Total Evaluated", f"{recheck_metrics['total_evaluated']} Images")
                             rc_m2.metric("✅ Maintained & Matched", f"{recheck_metrics['maintained_count']} Screens")
                             rc_m3.metric("⚠️ Unmaintained / Missing", f"{recheck_metrics['missing_maint_count']} Screens")
+                            with rc_m4:
+                                st.markdown("<div style='margin-top: 18px;'></div>", unsafe_allow_html=True)
+                                if st.button("🔄 Refresh / Recheck Library", type="secondary", use_container_width=True, key="oq_hmi_btn_refresh_recheck"):
+                                    st.rerun()
 
                             # Highlight Unmaintained / Missing rows in yellow
                             def highlight_recheck(row):
@@ -6810,6 +6828,8 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
 
                             if recheck_metrics['missing_maint_count'] > 0:
                                 st.warning(f"💡 **Maintenance Alert:** {recheck_metrics['missing_maint_count']} screen(s) are missing from the template library for `{selected_hmi_machine}`. Switch to the '⚙️ Machine Type & Template Maintenance' tab to add them.")
+                            else:
+                                st.success(f"🎉 **Library Complete:** All {recheck_metrics['maintained_count']} screens are maintained and matched in `{selected_hmi_machine}`! (0 Missing screens)")
                         except Exception as ex_rc:
                             st.info("💡 Upload screenshots to run live Existing Recheck against Template Library.")
 
@@ -6947,6 +6967,13 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
 
                                 custom_order = st.session_state.get("oq_hmi_custom_image_order", None)
 
+                                import importlib
+                                import backend.oq_hmi_service as oq_hmi_svc
+                                try:
+                                    importlib.reload(oq_hmi_svc)
+                                except Exception:
+                                    pass
+
                                 result_hmi = oq_hmi_svc.generate_oq_hmi_word(
                                     excel_source=excel_input_hmi,
                                     word_template_path=word_tmpl_path_hmi,
@@ -7020,11 +7047,14 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                 mt_col1, mt_col2, mt_col3 = st.columns([2, 1.2, 1.2])
 
                 with mt_col1:
+                    maint_cur_mach = st.session_state.get("oq_hmi_maint_active_mach", st.session_state.get("oq_hmi_machine_sel", default_hmi_m))
+                    maint_default_idx = maint_hmi_machines.index(maint_cur_mach) if maint_cur_mach in maint_hmi_machines else 0
                     sel_hmi_maint_mach = st.selectbox(
                         "🏭 Active Machine Type to Maintain",
                         maint_hmi_machines,
-                        index=0 if maint_hmi_machines else None,
-                        key="oq_hmi_maint_active_mach"
+                        index=maint_default_idx,
+                        key="oq_hmi_maint_active_mach",
+                        on_change=_sync_mach_to_gen
                     )
 
                 with mt_col2:
@@ -7076,6 +7106,8 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                             if st.button(f"💾 Save & Sync {len(maint_upload_files)} File(s) into {sel_hmi_maint_mach}", type="primary", use_container_width=True, key="oq_hmi_btn_save_uploaded_files"):
                                 with st.spinner(f"Saving and synchronizing template files for {sel_hmi_maint_mach}..."):
                                     saved = oq_hmi_svc.upload_hmi_machine_files(sel_hmi_maint_mach, maint_upload_files)
+                                    st.session_state["oq_hmi_machine_sel"] = sel_hmi_maint_mach
+                                    st.session_state["oq_hmi_maint_active_mach"] = sel_hmi_maint_mach
                                     st.success(f"🎉 Successfully saved {len(saved)} file(s) into `{sel_hmi_maint_mach}`!")
                                     st.rerun()
 
