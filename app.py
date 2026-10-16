@@ -147,7 +147,8 @@ def extract_text_for_page(pdf_bytes, page_index, page_image, ocr_engine="Windows
             try:
                 ocr_text = run_surya_ocr(page_image)
                 if ocr_text:
-                    text = text + "\n" + ocr_text
+                    # OCR first: embedded text layers may be scrambled (label/value order broken)
+                    text = ocr_text + "\n" + text
             except Exception:
                 pass
         elif ocr_engine == "Windows Media OCR (Native)" and WINOCR_AVAILABLE:
@@ -156,8 +157,8 @@ def extract_text_for_page(pdf_bytes, page_index, page_image, ocr_engine="Windows
                 ocr_result = winocr_recognize(page_image)
                 ocr_text = ocr_result.get('text', '')
                 if ocr_text:
-                    # Merge or use the OCR text
-                    text = text + "\n" + ocr_text
+                    # Merge: OCR first, embedded text layers may be scrambled
+                    text = ocr_text + "\n" + text
             except Exception:
                 pass
             
@@ -260,14 +261,52 @@ def is_rg_page(ocr_text, barcode_value, split_mode):
 # Material number extraction
 # ---------------------------------------------------------------------------
 def extract_material_number(ocr_text):
-    """Extract material number using regex with smart fallbacks."""
-    # Matches Material, Materail, Materia, Mat., etc. and digits
-    match = re.search(r'Materi[al1e\s]*\s*[-:;.]*\s*(\d+)', ocr_text, re.IGNORECASE)
-    if not match:
-        # Fallback to any standalone 7-8 digit number (common Material number formats)
-        match = re.search(r'\b(\d{7,8})\b', ocr_text)
+    """Extract material number using regex with smart fallbacks.
+
+    - Keeps a "-Fxxx" suffix when present (e.g. "2573497-F000").
+    - Ignores material-grade entries such as "Material : 1.4301" (decimal values).
+    - Uses the first valid "Material" occurrence (PURCHASE-INFORMATION block).
+    """
+    if not ocr_text:
+        return None
+
+    def _normalize_digits(s):
+        # Fix common OCR misreads inside numbers (O->0, I/l/|->1, S->5, B->8)
+        return s.translate(str.maketrans({'O': '0', 'o': '0', 'I': '1', 'l': '1', '|': '1', 'S': '5', 'B': '8'}))
+
+    def _f_suffix(rest):
+        # "-F000", "- F001", "-FO01" (OCR O->0) directly after the number
+        m = re.match(r'[ \t]*[-–][ \t]*F[ \t]*([0-9OoIl]{3})(?![0-9A-Za-z])', rest)
+        if m:
+            code = _normalize_digits(m.group(1))
+            if code.isdigit():
+                return f"-F{code}"
+        return ""
+
+    label = r'M\s*[a@]\s*t\s*[e3]\s*r\s*[i1l|]\s*[a@]\s*[l1I|]?'
+    # Number must not continue as a decimal (rejects grade values like 1.4301)
+    # Material numbers are 6-8 digits (e.g. 312367, 2820290). Longer ones (Vendor 6000010654,
+    # PO 4300221667) and shorter ones (Telephone 40800, Plant 1500) are rejected.
+    num = r'([0-9OoIl|SB]{5,8})(?![0-9OoIl|SB]|[.,/][0-9])'
+
+    # 1. Same-line match; iterate every "Material" label and take the first valid one.
+    for match in re.finditer(label + r'[ \t]*[-:;.|i]*[ \t]*' + num, ocr_text, re.IGNORECASE):
+        digits = _normalize_digits(match.group(1))
+        if digits.isdigit():
+            return digits + _f_suffix(ocr_text[match.end():])
+
+    # 2. Label and value separated (e.g. PyMuPDF extracted label/value in different blocks or lines):
+    #    look for ": <digits>" within a short window after the "Material" label.
+    for m in re.finditer(label, ocr_text, re.IGNORECASE):
+        window = ocr_text[m.end():m.end() + 300]
+        val = re.search(r'[:;]\s*(?<![0-9])(\d{6,8})(?![0-9]|[.,/][0-9])', window)
+        if val:
+            return val.group(1) + _f_suffix(window[val.end():])
+
+    # 3. Fallback to any standalone 7-8 digit number (common Material number formats)
+    match = re.search(r'(?<![0-9./])(\d{7,8})(?![0-9]|[.,/][0-9])', ocr_text)
     if match:
-        return match.group(1)
+        return match.group(1) + _f_suffix(ocr_text[match.end():])
     return None
 
 # ---------------------------------------------------------------------------
@@ -276,10 +315,15 @@ def extract_material_number(ocr_text):
 def extract_po_number(ocr_text):
     """Extract PO number using regex with smart fallbacks."""
     # Matches PO, P.O., P0, Purchase Order, and the number
-    match = re.search(r'(?:PO|P\.O\.|P0|Purchase\s*Order)\s*[-:;.]*\s*([\d/-]+)', ocr_text, re.IGNORECASE)
-    if not match:
-        # Fallback: PO number is typically 10 digits followed by a slash and 5 digits (e.g. 4300217445/00160)
-        match = re.search(r'\b(\d{10}/\d{5})\b', ocr_text)
+    if not ocr_text:
+        return None
+    # 1. Standard IWK PO format anywhere: 10 digits / 5 digits (e.g. 4300217445/00160)
+    match = re.search(r'(?<![0-9])(\d{10}\s*/\s*\d{5})(?![0-9])', ocr_text)
+    if match:
+        return re.sub(r'\s+', '', match.group(1))
+    # 2. Label-based: "PO : <number>" as a whole word (avoids "powder", "Description"),
+    #    and the value must be a real PO (>= 8 digits), not a stray digit.
+    match = re.search(r'(?<![A-Za-z])(?:PO|P\.O\.|P0|Purchase\s*Order)(?![A-Za-z])\s*[-:;.]*\s*(\d{8,}(?:/\d+)?)', ocr_text, re.IGNORECASE)
     if match:
         return match.group(1)
     return None
@@ -745,42 +789,37 @@ def render_ocr_certificate_page():
             else:
                 st.error(f"❌ Failed to save files directly to target folder. Error: {save_error_msg}")
 
-            # Download Buttons
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.download_button(
-                    label="⬇️ Download ZIP (Split PDFs)",
-                    data=zip_data,
-                    file_name="split_pdfs.zip",
-                    mime="application/zip"
-                )
-            with col2:
-                csv = df.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="⬇️ Download Log (CSV)",
-                    data=csv,
-                    file_name="split_log.csv",
-                    mime="text/csv"
-                )
-            with col3:
-                excel_data = to_excel(df)
-                st.download_button(
-                    label="⬇️ Download Log (Excel)",
-                    data=excel_data,
-                    file_name="split_log.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-
             st.markdown("---")
             st.subheader("⬇️ Download Individual Sets")
             
-            st.download_button(
-                label="📦 Download All as ZIP",
-                data=zip_data,
-                file_name="split_pdfs.zip",
-                mime="application/zip",
-                key="download_all_zip_section"
-            )
+            # Build ZIP whose entries are named by Material No. only; duplicates get (1), (2), ...
+            material_files = []
+            material_seen = {}
+            for (orig_name, pdf_bytes_set), doc_set in zip(split_files, document_sets):
+                mat_base = sanitize_filename_part(doc_set['material_no'] or "NoMaterial") or "NoMaterial"
+                count = material_seen.get(mat_base, 0)
+                material_seen[mat_base] = count + 1
+                mat_name = f"{mat_base}.pdf" if count == 0 else f"{mat_base} ({count}).pdf"
+                material_files.append((mat_name, pdf_bytes_set))
+            material_zip_data = create_zip(material_files)
+
+            dl_col1, dl_col2, _ = st.columns([1, 1, 2])
+            with dl_col1:
+                st.download_button(
+                    label="📦 Download All as ZIP",
+                    data=zip_data,
+                    file_name="split_pdfs.zip",
+                    mime="application/zip",
+                    key="download_all_zip_section"
+                )
+            with dl_col2:
+                st.download_button(
+                    label="🏷️ Download ZIP (Material Name)",
+                    data=material_zip_data,
+                    file_name="split_pdfs_material.zip",
+                    mime="application/zip",
+                    key="download_material_zip_section"
+                )
             st.write("")
             
             # Show a grid of individual files
