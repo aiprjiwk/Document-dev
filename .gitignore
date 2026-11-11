@@ -21,6 +21,8 @@ ENV/
 *.sqlite3
 ocr_processing_log.csv
 Output/
+output/
+[Tt]emp/
 0_Data/
 dataset_images/
 OEM/*
@@ -44,3 +46,5 @@ scratch/
 .idea/
 *.swp
 *.swo
+temp_*.docx
+

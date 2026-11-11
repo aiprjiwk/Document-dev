@@ -1,0 +1,772 @@
+[
+  {
+    "pos_no": "10100",
+    "kurztext": "Automatic Tube Unloading and Feeding System (TZ) (Integrated version)",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Basic machine"
+  },
+  {
+    "pos_no": "10101",
+    "kurztext": "Automatic Tube Unloading and Feeding System Model TZ 101 (Integrated version)",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Basic machine"
+  },
+  {
+    "pos_no": "55050",
+    "kurztext": "Guarding TZ in sterile execution",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Guarding"
+  },
+  {
+    "pos_no": "11110",
+    "kurztext": "Nominal output 30 cycles/min (QN according to DIN 8743)",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Performance"
+  },
+  {
+    "pos_no": "15260",
+    "kurztext": "Extension of tube conveyor belt to 1950 mm",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Tube conveyor belt"
+  },
+  {
+    "pos_no": "15410",
+    "kurztext": "Pivotable protective guarding over the tube transport conveyor",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Guarding"
+  },
+  {
+    "pos_no": "47090",
+    "kurztext": "Fixed protective tunnel at empty tube tray discharge",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Basic machine"
+  },
+  {
+    "pos_no": "55028",
+    "kurztext": "Polycarbonate (PC) instead of polymethylmethacrylate (PMMA) with air outlet ports (Laminar flow) for standard transparent guarding",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Guarding"
+  },
+  {
+    "pos_no": "55350",
+    "kurztext": "Guarding of TZ tube feeder with non-corroding machine finish",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Guarding"
+  },
+  {
+    "pos_no": "57010",
+    "kurztext": "Single wire numbering with adhesive labels.",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Machine marking"
+  },
+  {
+    "pos_no": "57015",
+    "kurztext": "Identification of pneumatic parts as well as hose system inside the machine.",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Machine marking"
+  },
+  {
+    "pos_no": "61550",
+    "kurztext": "TZ size parts (non-partitioned cartons)",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "61650",
+    "kurztext": "Sterilisable pick-up fingers and tube stripping rake made from stainless steel (316L).",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Additional option"
+  },
+  {
+    "pos_no": "69900",
+    "kurztext": "Testing of sizes and filling in adjustment chart(s)",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "73590",
+    "kurztext": "Jog-button for jogging with closed protective hoods",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Options control cabinet"
+  },
+  {
+    "pos_no": "89600",
+    "kurztext": "Design TZ Machine for Tyvec bag disposal section",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Additional option"
+  },
+  {
+    "pos_no": "61550",
+    "kurztext": "TZ size parts (non-partitioned cartons)",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "61650",
+    "kurztext": "Sterilisable pick-up fingers and tube stripping rake made from stainless steel (316L).",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Additional option"
+  },
+  {
+    "pos_no": "69900",
+    "kurztext": "Testing of sizes and filling in adjustment chart(s)",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "78001",
+    "kurztext": "Standard-documentation in English (Stand-alone Version)",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78080",
+    "kurztext": "FAT Protocol according to IWK standard",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78420",
+    "kurztext": "IWK Certificate equivalent to Test Report 2.2 as per DIN EN 10 204",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78810",
+    "kurztext": "Level A: Qualification documentation is function-oriented and risk-based ‘as built’ (as built: the documents are created with the machine development stage)",
+    "level_1": "Test result sheets IWK TZ",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "10100",
+    "kurztext": "Automatic tube filling and closing machine",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Basic machine"
+  },
+  {
+    "pos_no": "10700",
+    "kurztext": "IWK FP 34-1 standard version with 2 folding stations for metal tubes, hot air sealing station for plastic and laminate tubes and pressing station",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "IWK FP FP XX (FP series) standard version"
+  },
+  {
+    "pos_no": "55029",
+    "kurztext": "Upgrade FP34-1 MC for the Sterile execution",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Machine cover/ Guarding"
+  },
+  {
+    "pos_no": "11110",
+    "kurztext": "Nominal output (QN as per DIN 8743)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Performance"
+  },
+  {
+    "pos_no": "11210",
+    "kurztext": "Product contact parts",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Product contact parts"
+  },
+  {
+    "pos_no": "11220",
+    "kurztext": "Product contact surfaces",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Product contact parts"
+  },
+  {
+    "pos_no": "11230",
+    "kurztext": "Surface roughness (standard)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Product contact parts"
+  },
+  {
+    "pos_no": "16900",
+    "kurztext": "Tube position monitoring",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Tube position"
+  },
+  {
+    "pos_no": "31080",
+    "kurztext": "Preparation for connection of blow-off system at the filling pipes",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Blow-off system"
+  },
+  {
+    "pos_no": "47010",
+    "kurztext": "Verification of faulty tube discharge",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Discharge station"
+  },
+  {
+    "pos_no": "47020",
+    "kurztext": "Verification of good tube discharge",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Discharge station"
+  },
+  {
+    "pos_no": "47120",
+    "kurztext": "Ejection of faulty tubes IWK FP 34-1",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Discharge station"
+  },
+  {
+    "pos_no": "47170",
+    "kurztext": "Lockable ejection container for \"faulty\" tubes",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Discharge station"
+  },
+  {
+    "pos_no": "55028",
+    "kurztext": "Polycarbonate (PC) instead of polymethylmethacrylate (PMMA) with air outlet ports (Laminar flow) for standard transparent guarding",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Guarding"
+  },
+  {
+    "pos_no": "57010",
+    "kurztext": "Single wire numbering with adhesive labels.",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Machine marking"
+  },
+  {
+    "pos_no": "57015",
+    "kurztext": "Labeling of pneumatic parts as well as hose system inside the machine",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Machine marking"
+  },
+  {
+    "pos_no": "57020",
+    "kurztext": "Machine labels and visualization texts in English language",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options HMI hardware"
+  },
+  {
+    "pos_no": "32505",
+    "kurztext": "Size part: Filling pipe with nozzle and shut-off system",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "43450",
+    "kurztext": "Size part: Hot-Air tool with slot for straight tube seals",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "47260",
+    "kurztext": "Format part: chute for good tube discharge (tube diameter: 10-19 mm)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Good tube discharge"
+  },
+  {
+    "pos_no": "62100",
+    "kurztext": "Set of size parts tube inserter and print registration",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "62420",
+    "kurztext": "34 pieces of tube holders: basic and upper part, (execution with clamping segments)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "47255",
+    "kurztext": "Format part: tube flipper for tube cap facing forward",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Good tube discharge"
+  },
+  {
+    "pos_no": "69900",
+    "kurztext": "Testing of sizes and filling in adjustment chart(s)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "73150",
+    "kurztext": "Door interlock for control cabinet",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options control cabinet"
+  },
+  {
+    "pos_no": "73160",
+    "kurztext": "Safety doors with mechanical lock in open circuit principle",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options control cabinet"
+  },
+  {
+    "pos_no": "73205",
+    "kurztext": "Visual / audible signals",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "No",
+    "level_3": "No"
+  },
+  {
+    "pos_no": "73590",
+    "kurztext": "Jog-button for jogging with closed protective hoods",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Options control cabinet"
+  },
+  {
+    "pos_no": "73900",
+    "kurztext": "Remote diagnostics via a secure internet connection",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options control cabinet"
+  },
+  {
+    "pos_no": "83000",
+    "kurztext": "COMBINATIONS",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "No",
+    "level_3": "No"
+  },
+  {
+    "pos_no": "83210",
+    "kurztext": "Combination of tube filler and tube closing machine IWK FP34-1 with IWK TZ",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Combination"
+  },
+  {
+    "pos_no": "73050",
+    "kurztext": "Separate machine control cabinet (steel paint finish RAL 7035)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options control cabinet"
+  },
+  {
+    "pos_no": "73070",
+    "kurztext": "1 meter servo and control cable for extension",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options control cabinet"
+  },
+  {
+    "pos_no": "43450",
+    "kurztext": "Size part: Hot-Air tool with slot for straight tube seals",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "32505",
+    "kurztext": "Size part: Filling pipe with nozzle and shut-off system",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "62100",
+    "kurztext": "Set of size parts tube inserter and print registration",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "62420",
+    "kurztext": "34 pieces of tube holders: basic and upper part, (execution with clamping segments)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "69900",
+    "kurztext": "Testing of sizes and filling in adjustment chart(s)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK TZ machine",
+    "level_3": "Size parts"
+  },
+  {
+    "pos_no": "47255",
+    "kurztext": "Format part: tube flipper for tube cap facing forward",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Good tube discharge"
+  },
+  {
+    "pos_no": "40020",
+    "kurztext": "Gas purging in the station upstream of the filling station via fixed nozzles.",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Gas purging"
+  },
+  {
+    "pos_no": "30010",
+    "kurztext": "Power supply for product feeding pump with three-phase motor",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Product infeed pump"
+  },
+  {
+    "pos_no": "30110",
+    "kurztext": "Flange connection DN [65] and Tri-Clamp adapter for direct product in-feed into rotary valve",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Rotary valve"
+  },
+  {
+    "pos_no": "32016",
+    "kurztext": "Dosing cylinder with piston, 16 mm diameter",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Dosing cylinder"
+  },
+  {
+    "pos_no": "32220",
+    "kurztext": "Rotary valve for filling volume < 15 ml",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Rotary valve"
+  },
+  {
+    "pos_no": "32290",
+    "kurztext": "Adapter plate",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Rotary valve"
+  },
+  {
+    "pos_no": "32410",
+    "kurztext": "Mounting suspension for filling pipe with shut-off capability for fill volume of < 15 ml",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Mounting suspension for filling pipe"
+  },
+  {
+    "pos_no": "32610",
+    "kurztext": "Passivation of stainless steel parts in contact with the product",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Filling pipe"
+  },
+  {
+    "pos_no": "32830",
+    "kurztext": "Product contact seals FKM (can be sterilized, FDA approved, with certificate)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Seals"
+  },
+  {
+    "pos_no": "33210",
+    "kurztext": "Lifting device for block-wise exchange of product-contact format parts (for wet parts carrier rectangular to the machine)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Change of product contact format parts"
+  },
+  {
+    "pos_no": "33230",
+    "kurztext": "Trolley for storage and transportation of a product-contact format parts block",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Change of product contact format parts"
+  },
+  {
+    "pos_no": "43260",
+    "kurztext": "Closing station for saddle fold",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Folding station for metal tubes"
+  },
+  {
+    "pos_no": "43310",
+    "kurztext": "Folding tools for double-fold, folding width 5 mm",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Folding station for metal tubes"
+  },
+  {
+    "pos_no": "43335",
+    "kurztext": "Folding tools for saddle fold, folding width 5 mm",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Folding station for metal tubes"
+  },
+  {
+    "pos_no": "45130",
+    "kurztext": "Pressing jaws with single-sided [Number of embossings] digit embossing (excluding embossing types)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Press and embossing station"
+  },
+  {
+    "pos_no": "45220",
+    "kurztext": "Embossing types for metal tubes Print size: 2.5 mm x 1.5 mm, type width: 2.0 mm",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Press and embossing station"
+  },
+  {
+    "pos_no": "45330",
+    "kurztext": "Cooling and pressing jaws for single-sided embossing [Number of embossings]-digit, male code embossing (excluding coding digits)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Press and embossing station"
+  },
+  {
+    "pos_no": "45410",
+    "kurztext": "Embossing digits for plastic and laminated tubes (hot air sealed) Print size 2.0 x 1.2 mm, Type width 1.75 mm",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Press and embossing station"
+  },
+  {
+    "pos_no": "45020",
+    "kurztext": "Swiveling and adjustable pre-form tool",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Press and embossing station"
+  },
+  {
+    "pos_no": "45030",
+    "kurztext": "Closed loop water chiller with water circulation - IN CUSTOMER'S SCOPE - Customer will provide chilled water",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Press and embossing station"
+  },
+  {
+    "pos_no": "45040",
+    "kurztext": "Fast and tool-less change over system for pressing tool",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Press and embossing station"
+  },
+  {
+    "pos_no": "45510",
+    "kurztext": "Trimming station",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Trimming or Punching station"
+  },
+  {
+    "pos_no": "45632",
+    "kurztext": "Extraction unit for tube cutting by vacuum unit in stainless steel version",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Trimming or Punching station"
+  },
+  {
+    "pos_no": "47250",
+    "kurztext": "Good tube discharge with cap forward instead of fold forward (in sterile execution)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Good tube discharge"
+  },
+  {
+    "pos_no": "72200",
+    "kurztext": "Industrial PC with 15,4' touch-screen for operating and visualization",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options HMI hardware"
+  },
+  {
+    "pos_no": "72201",
+    "kurztext": "IWK IPC - U ARM made of Stainless Steel",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options HMI hardware"
+  },
+  {
+    "pos_no": "72450",
+    "kurztext": "Batch report",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options HMI software"
+  },
+  {
+    "pos_no": "72500",
+    "kurztext": "OPC Server",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options HMI software"
+  },
+  {
+    "pos_no": "72570",
+    "kurztext": "Automatic Report Generation and Data Archiving on network drive",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options HMI software"
+  },
+  {
+    "pos_no": "72595",
+    "kurztext": "Network-Router",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options HMI software"
+  },
+  {
+    "pos_no": "72510",
+    "kurztext": "Software backup of the visualization PC",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options HMI software"
+  },
+  {
+    "pos_no": "72580",
+    "kurztext": "A Time synchronization between HMI-PC and customer specific time server",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Machine details IWK FP XX (FP series)",
+    "level_3": "Options HMI software"
+  },
+  {
+    "pos_no": "78001",
+    "kurztext": "Standard-documentation in English",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78005",
+    "kurztext": "CE-Declaration of Conformity for IWK machines (for customers not in EU)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78080",
+    "kurztext": "FAT Protocol according to IWK standard",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78220",
+    "kurztext": "Product Flow Diagram (in the style of P&I-diagrams)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78260",
+    "kurztext": "Layout electrical cabinet",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78280",
+    "kurztext": "Wiring diagrams in dxf-format",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78420",
+    "kurztext": "IWK Certificate equivalent to Test Report 2.2 as per DIN EN 10 204",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78620",
+    "kurztext": "Verification of initial calibration for first GMP relevant sensor",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78810",
+    "kurztext": "Level A: Qualification documentation is function-oriented and risk-based ‘as built’ (as built: the documents are created with the machine development stage)",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78920",
+    "kurztext": "Traceability matrix between the URS, FS, HDS, SDS, and the IQ/OQ sections contained in the order",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "540010",
+    "kurztext": "Integration of Customer-owned Non-viable probe for measuring particles in the air",
+    "level_1": "Test result sheets IWK 34-1",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78006",
+    "kurztext": "Additional hard copy: operating manual",
+    "level_1": "Test result sheets IWK TZC",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78007",
+    "kurztext": "Translation of operating manual into the official language Chinese of the recipient country",
+    "level_1": "Test result sheets IWK TZC",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "786201",
+    "kurztext": "Calibration certification",
+    "level_1": "Test result sheets IWK TZC",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "78860",
+    "kurztext": "Functional Specification (FS)",
+    "level_1": "Test result sheets IWK TZC",
+    "level_2": "Documents",
+    "level_3": ""
+  },
+  {
+    "pos_no": "79200",
+    "kurztext": "Spare parts and wear parts",
+    "level_1": "Test result sheets IWK TZC",
+    "level_2": "Documents",
+    "level_3": ""
+  }
+]
