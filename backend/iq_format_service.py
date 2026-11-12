@@ -3,13 +3,39 @@ import io
 import re
 import datetime
 import tempfile
+import copy
 import pandas as pd
-import pythoncom
-import win32com.client
+import docx
+from docx.shared import Pt, Inches
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-DEFAULT_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "IQ_Format", "5XXXX_08_IQ_Format Parts_20XX-XX-XX_en.doc")
-FALLBACK_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "IQOQDQ", "Data IQOQDQ", "5XXXX_08_IQ_Format Parts_20XX-XX-XX_en.doc")
+
+def find_default_iq_format_template() -> str:
+    """
+    Finds the active Word master template for IQ Format Parts from the project directory.
+    Searches IQOQDQ/IQ_Format, IQOQDQ/Data IQOQDQ, and 0_Data/IQ.
+    """
+    search_dirs = [
+        os.path.join(PROJECT_ROOT, "IQOQDQ", "IQ_Format"),
+        os.path.join(PROJECT_ROOT, "IQOQDQ", "Data IQOQDQ"),
+        os.path.join(PROJECT_ROOT, "0_Data", "IQ"),
+    ]
+    for d in search_dirs:
+        if os.path.exists(d):
+            files = [f for f in os.listdir(d) if not f.startswith("~$") and f.lower().endswith(('.docx', '.doc'))]
+            for f in files:
+                f_lower = f.lower()
+                if "08_iq_format" in f_lower or "format parts" in f_lower:
+                    return os.path.join(d, f)
+            if files:
+                return os.path.join(d, files[0])
+    return os.path.join(PROJECT_ROOT, "IQOQDQ", "IQ_Format", "XXXXX_08_IQ_Format Parts_2025-01-02_en.docx")
+
+DEFAULT_TEMPLATE_PATH = find_default_iq_format_template()
+FALLBACK_TEMPLATE_PATH = DEFAULT_TEMPLATE_PATH
 
 def clean_quantity(raw_qty):
     """
@@ -46,7 +72,7 @@ def format_fn_codes(fmt_str):
 
 def parse_and_clean_format_excel(excel_source):
     """
-    Parses Excel BOM and applies the 4 required rules:
+    Parses Excel BOM and applies the required rules:
     1. Exclude non-format columns (E-Q).
     2. Exclude Size/dimensions (Col C) and Component number (Col A).
     3. Skip header row.
@@ -101,6 +127,45 @@ def parse_and_clean_format_excel(excel_source):
     fn_tags_sorted = sorted(list(all_fn_tags), key=lambda x: int(re.sub(r'\D', '', x)) if re.sub(r'\D', '', x).isdigit() else 999)
     return groups, preview_df, fn_tags_sorted
 
+def set_row_repeat_header(row):
+    """Sets w:tblHeader on table row so header repeats across pages."""
+    trPr = row._tr.get_or_add_trPr()
+    if trPr.find(qn('w:tblHeader')) is None:
+        trPr.append(OxmlElement('w:tblHeader'))
+
+def set_row_cant_split(row):
+    """Sets w:cantSplit on table row to prevent awkward page splits."""
+    trPr = row._tr.get_or_add_trPr()
+    if trPr.find(qn('w:cantSplit')) is None:
+        trPr.append(OxmlElement('w:cantSplit'))
+
+def convert_legacy_doc_to_docx(doc_path: str) -> str:
+    """
+    Converts a legacy binary .doc file to temporary .docx via Word COM.
+    Used only if a user uploads a legacy .doc file.
+    """
+    import pythoncom
+    import win32com.client
+    pythoncom.CoInitialize()
+    word = win32com.client.DispatchEx('Word.Application')
+    word.Visible = False
+    word.DisplayAlerts = 0
+    temp_docx = os.path.join(tempfile.gettempdir(), f"conv_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.docx")
+    try:
+        doc = word.Documents.Open(os.path.abspath(doc_path), ReadOnly=True, Visible=False)
+        doc.SaveAs2(temp_docx, FileFormat=16) # 16 = wdFormatXMLDocument (.docx)
+        doc.Close(False)
+    finally:
+        try:
+            word.Quit()
+        except Exception:
+            pass
+        try:
+            pythoncom.CoUninitialize()
+        except Exception:
+            pass
+    return temp_docx
+
 def generate_iq_format_word(
     excel_source,
     word_template_path=None,
@@ -110,11 +175,13 @@ def generate_iq_format_word(
     **kwargs
 ):
     """
-    Directly opens the Master Word template (.doc) from IQ_Format directory,
-    modifies Table 4 only, updates Quantity (Set) -> Quantity (PCS), formats columns to exact widths,
-    formats quantities as integers without decimals, preserves all original template metadata,
-    and generates the file in memory for direct download.
+    Directly opens the Master Word template from IQ_Format directory,
+    modifies Table 3 (Completeness of Format Parts), updates Quantity (Set) -> Quantity (PCS),
+    formats columns to exact widths and fonts, removes sample dummy rows,
+    populates actual format parts grouped by category, preserves all original template layout,
+    and returns document bytes and preview metadata for direct download.
     """
+    # 1. Parse data (either from edited_df or raw Excel source)
     if edited_df is not None and not edited_df.empty:
         groups = {}
         flat_records = []
@@ -146,161 +213,181 @@ def generate_iq_format_word(
     if not groups:
         raise ValueError('No valid format parts found in Excel file. Please ensure Funktion Zeile1 (Col D) contains format data.')
 
+    # 2. Resolve template path
     chosen_tmpl = word_template_path or word_template_source or kwargs.get('word_template_path') or kwargs.get('word_template_source')
     if chosen_tmpl and os.path.exists(os.path.abspath(str(chosen_tmpl))):
         template_to_use = os.path.abspath(str(chosen_tmpl))
-    elif os.path.exists(DEFAULT_TEMPLATE_PATH):
-        template_to_use = DEFAULT_TEMPLATE_PATH
-    elif os.path.exists(FALLBACK_TEMPLATE_PATH):
-        template_to_use = FALLBACK_TEMPLATE_PATH
     else:
-        raise FileNotFoundError(f'Word master template not found in IQ_Format or Data IQOQDQ.')
+        template_to_use = find_default_iq_format_template()
+
+    if not os.path.exists(template_to_use):
+        raise FileNotFoundError(f'Word master template not found for IQ Format Parts: {template_to_use}')
+
+    # If the template is binary .doc, convert to temporary .docx first
+    temp_converted_docx = None
+    if template_to_use.lower().endswith('.doc'):
+        temp_converted_docx = convert_legacy_doc_to_docx(template_to_use)
+        active_docx_path = temp_converted_docx
+    else:
+        active_docx_path = template_to_use
 
     today_str = datetime.datetime.now().strftime('%Y-%m-%d')
     tmpl_base = os.path.splitext(os.path.basename(template_to_use))[0]
-    if '20xx-xx-xx' in tmpl_base.lower():
-        download_file_name = re.sub(r'20XX-XX-XX', today_str, tmpl_base, flags=re.IGNORECASE) + '.doc'
+
+    # Format output filename
+    if '20xx-xx-xx' in tmpl_base.lower() or 'yyyy-mm-dd' in tmpl_base.lower():
+        download_file_name = re.sub(r'20XX-XX-XX|YYYY-MM-DD', today_str, tmpl_base, flags=re.IGNORECASE) + '.docx'
+    elif re.search(r'\d{4}-\d{2}-\d{2}', tmpl_base):
+        download_file_name = re.sub(r'\d{4}-\d{2}-\d{2}', today_str, tmpl_base) + '.docx'
     else:
-        download_file_name = f'{tmpl_base}_{today_str}.doc'
+        download_file_name = f'{tmpl_base}_{today_str}.docx'
 
-    # Use temporary file to hold the COM output before loading into memory
-    temp_dir = tempfile.gettempdir()
-    temp_out_path = os.path.join(temp_dir, f"temp_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.doc")
+    order_no = ""
+    if metadata and isinstance(metadata, dict):
+        order_no = str(metadata.get('order_no', '')).strip()
+    if order_no and order_no.upper() != 'XXXXX':
+        download_file_name = re.sub(r'^XXXXX', order_no, download_file_name, flags=re.IGNORECASE)
 
-    pythoncom.CoInitialize()
-    word = win32com.client.DispatchEx('Word.Application')
-    word.Visible = False
-    word.DisplayAlerts = 0
+    # 3. Open document using python-docx (fast, stable, memory-efficient)
+    doc = docx.Document(active_docx_path)
 
-    try:
-        doc = word.Documents.Open(
-            FileName=template_to_use,
-            ConfirmConversions=False,
-            ReadOnly=False,
-            AddToRecentFiles=False,
-            Visible=False
-        )
+    # 4. Find Format Parts table dynamically
+    target_tbl = None
+    for tbl in doc.tables:
+        for r in tbl.rows[:3]:
+            row_txt = ' '.join(c.text.lower() for c in r.cells)
+            if 'designation' in row_txt and ('format' in row_txt or 'quantity' in row_txt):
+                target_tbl = tbl
+                break
+        if target_tbl:
+            break
 
-        if doc.Tables.Count < 4:
-            raise ValueError(f'Table 4 not found in template. Found {doc.Tables.Count} tables.')
+    # Fallback if header matching wasn't found: inspect tables by column count
+    if not target_tbl:
+        for idx in [2, 3, 1, 0]:
+            if idx < len(doc.tables) and len(doc.tables[idx].columns) >= 7:
+                target_tbl = doc.tables[idx]
+                break
 
-        tbl = doc.Tables(4)
+    if not target_tbl:
+        raise ValueError(f'Completeness of Format Parts table not found in template. Available tables: {len(doc.tables)}')
 
-        # Set table header rows to repeat across page breaks
+    # 5. Update header: "Quantity (Set)" -> "Quantity\n(PCS)"
+    if len(target_tbl.rows) > 1:
+        for cell in target_tbl.rows[1].cells:
+            c_text_l = cell.text.lower()
+            if 'set' in c_text_l or 'quantity' in c_text_l or 'pc' in c_text_l:
+                cell.text = 'Quantity\n(PCS)'
+                p = cell.paragraphs[0]
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                if p.runs:
+                    p.runs[0].font.name = 'Arial'
+                    p.runs[0].font.size = Pt(9)
+                    p.runs[0].font.bold = True
+                break
+
+    # Set repeating headers on row 0 and row 1
+    for r in target_tbl.rows[:2]:
+        set_row_repeat_header(r)
+        set_row_cant_split(r)
+
+    # 6. Capture XML row templates for section header (row 2) and detail row (row 3)
+    if len(target_tbl.rows) >= 4:
+        hdr_template_xml = copy.deepcopy(target_tbl.rows[2]._tr)
+        detail_template_xml = copy.deepcopy(target_tbl.rows[3]._tr)
+    elif len(target_tbl.rows) >= 3:
+        hdr_template_xml = copy.deepcopy(target_tbl.rows[2]._tr)
+        detail_template_xml = copy.deepcopy(target_tbl.rows[2]._tr)
+    else:
+        hdr_template_xml = None
+        detail_template_xml = None
+
+    # Remove all sample dummy rows from row 2 onwards
+    while len(target_tbl.rows) > 2:
+        tr = target_tbl.rows[-1]._tr
+        tr.getparent().remove(tr)
+
+    # Standard column widths (matching original template Table 3)
+    TEMPLATE_WIDTHS = [Inches(0.5), Inches(1.75), Inches(1.0), Inches(0.6875), Inches(0.75), Inches(0.8125), Inches(0.8)]
+
+    # 7. Populate sections and detail items
+    item_counter = 1
+    for grp_name, items in groups.items():
+        # A. Section Header Row
+        if hdr_template_xml is not None:
+            new_tr = copy.deepcopy(hdr_template_xml)
+            target_tbl._tbl.append(new_tr)
+            new_row = target_tbl.rows[-1]
+            new_row.cells[0].text = grp_name
+            p = new_row.cells[0].paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            if p.runs:
+                p.runs[0].font.name = 'Arial'
+                p.runs[0].font.size = Pt(9.5)
+                p.runs[0].font.bold = True
+        else:
+            new_row = target_tbl.add_row()
+            merged_cell = new_row.cells[0]
+            for c_idx in range(1, len(new_row.cells)):
+                merged_cell.merge(new_row.cells[c_idx])
+            merged_cell.text = grp_name
+            p = merged_cell.paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            if p.runs:
+                p.runs[0].font.name = 'Arial'
+                p.runs[0].font.size = Pt(9.5)
+                p.runs[0].font.bold = True
+
+        set_row_cant_split(new_row)
+
+        # B. Detail Rows
+        for item in items:
+            if detail_template_xml is not None:
+                det_tr = copy.deepcopy(detail_template_xml)
+                target_tbl._tbl.append(det_tr)
+                row = target_tbl.rows[-1]
+            else:
+                row = target_tbl.add_row()
+
+            set_row_cant_split(row)
+
+            vals = [
+                (f'{item_counter}.', WD_ALIGN_PARAGRAPH.CENTER, False),
+                (item[0], WD_ALIGN_PARAGRAPH.LEFT, False),
+                (item[1], WD_ALIGN_PARAGRAPH.CENTER, False),
+                (item[2], WD_ALIGN_PARAGRAPH.CENTER, False),
+                ('', WD_ALIGN_PARAGRAPH.CENTER, False),
+                ('', WD_ALIGN_PARAGRAPH.CENTER, False),
+                ('', WD_ALIGN_PARAGRAPH.CENTER, False),
+            ]
+
+            for k, (val, align, bold) in enumerate(vals):
+                if k < len(row.cells):
+                    c = row.cells[k]
+                    c.text = val
+                    if k < len(TEMPLATE_WIDTHS):
+                        c.width = TEMPLATE_WIDTHS[k]
+                    p = c.paragraphs[0]
+                    p.alignment = align
+                    if p.runs:
+                        p.runs[0].font.name = 'Arial'
+                        p.runs[0].font.size = Pt(9)
+                        p.runs[0].font.bold = bold
+
+            item_counter += 1
+
+    # Save to binary in-memory stream
+    doc_io = io.BytesIO()
+    doc.save(doc_io)
+    doc_io.seek(0)
+    doc_bytes = doc_io.getvalue()
+
+    # Clean up converted temporary docx if one was created
+    if temp_converted_docx and os.path.exists(temp_converted_docx):
         try:
-            tbl.Rows(1).HeadingFormat = -1
-            tbl.Rows(2).HeadingFormat = -1
+            os.remove(temp_converted_docx)
         except Exception:
             pass
-
-        # Update Quantity header to Quantity\r(PCS)
-        for i in range(1, min(tbl.Range.Cells.Count + 1, 9)):
-            try:
-                c = tbl.Range.Cells(i)
-                text_lower = c.Range.Text.lower()
-                if 'set' in text_lower or 'pc' in text_lower:
-                    c.Range.Text = "Quantity\r(PCS)"
-                    c.Range.Font.Name = "Arial"
-                    c.Range.Font.Size = 9
-                    c.Range.Font.Bold = 1
-                    c.Range.ParagraphFormat.Alignment = 1 # Center
-            except Exception:
-                pass
-
-
-
-        # Clear existing sample rows from row 3 onwards
-        if tbl.Rows.Count >= 3 or tbl.Range.Cells.Count > 8:
-            try:
-                start_pos = tbl.Cell(3, 1).Range.Start
-                end_pos = tbl.Range.Cells(tbl.Range.Cells.Count).Range.End
-                clear_rng = doc.Range(start_pos, end_pos)
-                clear_rng.Select()
-                word.Selection.Rows.Delete()
-            except Exception:
-                pass
-
-        # Exact column widths matching original template Table 4
-        TEMPLATE_WIDTHS = [36.0, 126.0, 72.0, 49.5, 54.0, 58.5, 57.6]
-
-        item_counter = 1
-        for grp_name, items in groups.items():
-            # 1. Section Header Row (Left-aligned as in template)
-            last_count = tbl.Range.Cells.Count
-            tbl.Rows.Add()
-            h_start = last_count + 1
-            h_end = tbl.Range.Cells.Count
-            if (h_end - h_start + 1) == 7:
-                tbl.Range.Cells(h_start).Merge(tbl.Range.Cells(h_end))
-                
-            h_cell = tbl.Range.Cells(h_start)
-            h_cell.Range.Text = grp_name
-            h_cell.Range.Font.Bold = 1
-            h_cell.Range.Font.Name = 'Arial'
-            h_cell.Range.Font.Size = 9.5
-            h_cell.Range.ParagraphFormat.Alignment = 0 # Left aligned
-
-            # 2. Detail Rows
-            is_first_detail = True
-            for item in items:
-                last_count = tbl.Range.Cells.Count
-                tbl.Rows.Add()
-                if is_first_detail:
-                    try:
-                        tbl.Range.Cells(last_count + 1).Split(1, 7)
-                    except Exception:
-                        pass
-                    is_first_detail = False
-                    
-                start_idx = last_count + 1
-                tbl.Range.Cells(start_idx + 0).Range.Text = f'{item_counter}.'
-                tbl.Range.Cells(start_idx + 1).Range.Text = item[0]
-                tbl.Range.Cells(start_idx + 2).Range.Text = item[1]
-                tbl.Range.Cells(start_idx + 3).Range.Text = item[2]
-                tbl.Range.Cells(start_idx + 4).Range.Text = ''
-                tbl.Range.Cells(start_idx + 5).Range.Text = ''
-                tbl.Range.Cells(start_idx + 6).Range.Text = ''
-                
-                # Alignments:
-                tbl.Range.Cells(start_idx + 0).Range.ParagraphFormat.Alignment = 1 # Center
-                tbl.Range.Cells(start_idx + 1).Range.ParagraphFormat.Alignment = 0 # Left
-                tbl.Range.Cells(start_idx + 2).Range.ParagraphFormat.Alignment = 1 # Center
-                tbl.Range.Cells(start_idx + 3).Range.ParagraphFormat.Alignment = 1 # Center
-                
-                # Set exact column widths matching master template
-                for k in range(7):
-                    c_cell = tbl.Range.Cells(start_idx + k)
-                    c_cell.Width = TEMPLATE_WIDTHS[k]
-                    c_rng = c_cell.Range
-                    c_rng.Font.Name = 'Arial'
-                    c_rng.Font.Size = 9
-                    c_rng.Font.Bold = 0
-                    
-                item_counter += 1
-
-        doc.SaveAs(temp_out_path)
-        doc.Close(False)
-
-    finally:
-        try:
-            word.Quit()
-        except Exception:
-            pass
-        try:
-            pythoncom.CoUninitialize()
-        except Exception:
-            pass
-
-    # Read binary bytes into memory for direct browser download
-    with open(temp_out_path, 'rb') as f:
-        doc_bytes = f.read()
-
-    # Clean up temp file immediately so nothing is stored on disk
-    try:
-        if os.path.exists(temp_out_path):
-            os.remove(temp_out_path)
-    except Exception:
-        pass
 
     return {
         'success': True,

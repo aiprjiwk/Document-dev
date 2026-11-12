@@ -6385,7 +6385,8 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                 if tmpl_files:
                     default_tmpl_idx = 0
                     for idx, fn in enumerate(tmpl_files):
-                        if "5xxxx_08_iq_format" in fn.lower():
+                        fn_l = fn.lower()
+                        if "08_iq_format" in fn_l or "format parts" in fn_l or "5xxxx_08_iq_format" in fn_l:
                             default_tmpl_idx = idx
                             break
                     selected_tmpl = st.selectbox("Select Word Template (.doc / .docx)", tmpl_files, index=default_tmpl_idx, key="iq_fmt_tmpl_sel")
@@ -6474,8 +6475,15 @@ def render_iqoqdq_page(sub_section: str = "📐 DQ Stage"):
                 if not excel_input:
                     st.error("❌ Please select or upload an Excel data file first.")
                 else:
-                    with st.spinner("Opening original Word template, populating Table 4 with formatted Fn data, and preparing download..."):
+                    with st.spinner("Populating Word master template with formatted parts data and preparing download..."):
                         try:
+                            import importlib
+                            import backend.iq_format_service as iq_fmt_svc
+                            try:
+                                importlib.reload(iq_fmt_svc)
+                            except Exception:
+                                pass
+
                             result = iq_fmt_svc.generate_iq_format_word(
                                 excel_source=excel_input,
                                 word_template_path=word_tmpl_path,
